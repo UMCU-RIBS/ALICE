@@ -1,0 +1,8 @@
+NeuralAct
+A matlab tool to visualize cortical activity on a three-dimensional model of the cortex
+Author: Jan Kubanek (jan@eye-hand.wustl.edu)
+Initially developed in 2005 at the Wadsworth Center in Albany, NY
+
+If you find NeuralAct useful in your research, please refer to it as:
+
+Kubanek J., Schalk G. NeuralAct: A tool to visualize electrocortical (ECoG) activity on a three-dimensional model of the cortex. [publisher name, year, volume]
