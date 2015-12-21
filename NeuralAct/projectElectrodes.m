@@ -123,9 +123,12 @@ for subj = 1 : Ss,
        
        %compute the normal vector
            %surf the brain so that the normals get computed:
-           h = trisurf(M.tri, M.vert(:, 1), M.vert(:, 2), M.vert(:, 3), 'FaceVertexCData', 1, 'LineStyle', 'none');
-           normals = get(h, 'VertexNormals');
-           close(gcf);
+%            h = trisurf(M.tri, M.vert(:, 1), M.vert(:, 2), M.vert(:, 3), 'FaceVertexCData', 1, 'LineStyle', 'none');
+%            normals = get(h, 'VertexNormals');
+%            close(gcf);
+
+           normals = vertexNormal(triangulation(M.tri, M.vert)); %edited by Z. Freudenburg to run in version >2013a
+
            normals2av = normals(closevert, :);
            [row, col] = find(isnan(normals2av)); %find NaN values
            normals2av(row, :) = []; %and remove them
