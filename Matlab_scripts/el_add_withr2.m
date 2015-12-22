@@ -1,4 +1,4 @@
-function el_add(els,r2,msize)
+function el_add_withr2(els,r2,msize)
 
 elcol='k';
 % x=[1:0.5:100];
@@ -17,7 +17,9 @@ cm(1,:)=[0 0 0];
 if exist('elcol')==0, 
     elcol='r'; %default color if none input
 end
+
 hold on
+
 % black circle around electrode:
 % plot3(els(:,1),els(:,2),els(:,3),'.','Color', elcol,'MarkerSize',msize+5)
 % electrode with r2:
