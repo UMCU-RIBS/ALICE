@@ -163,15 +163,15 @@ cutoff = 10;
 %   linear kernel specifies the distance at which the activations falls to
 %   zero)
 
-%Save the contributions for this subject and brain so that this
-%does need to be done gain (but remember to use the according subj structure and
+%Can save the contributions for this subject and brain so that this
+%doesn't need to be done gain (but remember to use the according subj structure and
 %brain model when visualizing the data).
 
 %save DEMOvcontribs.mat vcontribs;
 
 %% Visualize the activations
 %Set what you want to see:
-%(please consult |NeuralAct| for further information on the following structures)
+%(consult |NeuralAct| for further information)
 viewstruct.what2view = {'brain', 'activations'};
 viewstruct.viewvect = [120, 10];
 viewstruct.material = 'dull';
@@ -180,7 +180,7 @@ viewstruct.enableaxis = 0;
 viewstruct.lightpos = [200, 0, 0];
 viewstruct.lightingtype = 'gouraud';
 
-%and how you want to see it:
+%... and how you want to see it:
 cmapstruct.cmap = colormap('Jet'); close(gcf); %because colormap creates a figure
 cmapstruct.basecol = [0.7, 0.7, 0.7];
 cmapstruct.fading = true;
@@ -191,11 +191,10 @@ cmapstruct.enablecolorbar = true;
 
 %Run |NeuralAct|:
 %NOTE:
-%Do not forget to use the same brain model as the one used for the
-%precomputation of the contributions (that is, the fine one). Also,
-%use the subj that is the output of |projectElectrodes|).
+%Use the same brain model as the one used for the computation of the contributions (i.e., a fine one).
+%Also, use the subj variable that is the output of |projectElectrodes|).
 
-%feel free to change the visualization style:
+%visualize:
 cmapstruct.fading = true;
 cmapstruct.cmin = 0;
 cmapstruct.cmax = 1;
