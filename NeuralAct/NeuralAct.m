@@ -210,14 +210,10 @@ for r = range, %for specified activation samples
             
         colormap(cmap);
         
-        if cmapstruct.enablecolorbar,
-            caxis([cmin, cmax]);
-            colorbar('location', 'SouthOutside');
-        end
     end
 
 
-%Please specify viewstruct.what2view (see above in comments) to display the brain surface and/or the activations
+%Specify viewstruct.what2view (see above in comments) to display the brain surface and/or the activations
 
 %grey brain:
     I = strmatch('brain', viewstruct.what2view,'exact');
@@ -251,7 +247,20 @@ for r = range, %for specified activation samples
     end
     lighting(viewstruct.lightingtype);
     
-%Please specify viewstruct.what2view (see above in comments) if you want to display the electrodes
+    if cmapstruct.enablecolorbar,
+        caxis([cmin, cmax]);
+        cbh = colorbar('location', 'SouthOutside');
+        if verLessThan('matlab', '8.4'), %<= R2014a
+            %no adjustment necessary
+        else %>= R2014b
+            ST = 4; %number of colorbar steps
+            yt = 1 : (length(cmap)) / ST : (length(cmap) + 1);
+            ytl = cmin : (cmax - cmin) / ST : cmax;
+            set(cbh, 'ytick', yt, 'yticklabel', ytl);
+        end
+    end    
+    
+%Specify viewstruct.what2view (see above in comments) if you want to display the electrodes
     for k = 1 : Ss;
        %original electrode locations:       
        I = strmatch('electrodes', viewstruct.what2view,'exact');
