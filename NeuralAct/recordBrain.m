@@ -94,10 +94,15 @@ winheight = 480;
 set(fig, 'Position', [pos(1) pos(2) winwidth winheight]);
 set(fig, 'DoubleBuffer', 'on');
 
-mov = avifile(filename);
-mov.compression = 'none';
-mov.quality = 100;
-mov.fps = 12;
+if verLessThan('matlab', '8.4'), %<= R2014a; in higher versions, the movie capturing functions will likely change
+    mov = avifile(filename);
+    mov.compression = 'none';
+    mov.quality = 100;
+    mov.fps = 12;
+else
+    fprintf('You have matlab version > R2014a. In recordBrain, update the functions to grab videos according to matlab doc.\n');
+    mov = [];
+end
 
 for col = range,
     fprintf('Processing frame %d\n', col);
@@ -112,8 +117,12 @@ for col = range,
         title(gca, stimulusstrcell{stimuluscode(col)});
     end
     
-    frame = getframe(gca);
-    mov = addframe(mov, frame);
+    if verLessThan('matlab', '8.4'), %<= R2014a; in higher versions, the movie capturing functions will likely change
+        frame = getframe(gca);
+        mov = addframe(mov, frame);
+    end
 end
 
-mov = close(mov);
+if verLessThan('matlab', '8.4'), %<= R2014a; in higher versions, the movie capturing functions will likely change
+    mov = close(mov);
+end
