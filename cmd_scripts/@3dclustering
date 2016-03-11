@@ -1,0 +1,54 @@
+#!/bin/tcsh -f
+
+set cnt = 1
+
+
+ if ("$argv[$cnt]" == "-CTaltoT1_path") then
+              
+         
+            @ cnt ++
+            set ct = "$argv[$cnt]"
+              
+            
+ endif
+ 
+ @ cnt ++
+ if ("$argv[$cnt]" == "-radius") then
+            
+         
+            @ cnt ++
+            set r = "$argv[$cnt]"
+               
+            
+ endif
+
+ @ cnt ++
+ if ("$argv[$cnt]" == "-interelectrode_space") then
+            
+         
+            @ cnt ++
+            set is = "$argv[$cnt]"
+               
+            
+    endif
+
+   @ cnt ++
+ if ("$argv[$cnt]" == "-clip_value") then
+            
+         
+            @ cnt ++
+            set cv = "$argv[$cnt]"
+               
+            
+ endif  
+3dclust -savemask 3dclusters.nii -1Dformat -1clip $cv $is $r $ct  > clst.1D 
+
+HELP:
+   echo ""
+   echo "Usage: `basename $0` <-CTaltoT1_path BASE> <-clip_value CLIP_VALUE> <-radius RADIUS> <-interelectrode_space INTERELECTRODE_SPACE> [-no_cp] "
+   echo "                     "
+   echo ""
+   echo "   Run inside /data/CT/3dclustering"
+   echo "   tcsh @3dclustering -CTaltoT1_path path_to_CTaltoT1 -clip_value max_CT_intensity_value-radius cluster_size_radius -interelectrode_space distance_between_cluster"
+   echo "   Suggested values: radius = 3 to 5, interelectrore_space = 0 to 1 "
+   echo ""

@@ -1,0 +1,11 @@
+tcsh 
+setenv AFNI_SLICE_SPACING_IS_GAP YES
+setenv AFNI_DICOM_RESCALE NO
+Dimon -infile_pattern 'CT*' -no_wait -gert_create_dataset -gert_to3d_prefix CT_highresRAI.nii
+
+
+#optional
+to3d CT_highres.nii #change to RAI and change resolution
+
+
+
