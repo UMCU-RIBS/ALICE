@@ -575,8 +575,8 @@ classdef ctmrGUI < handle
             disp('     ___    ');
             disp('    |   |   _ ');
             disp(' ___| __|__|_|__        ');
-            disp('|    | |       _|          ');
-            disp('|____| |______|_| |  Together everyone achieves more  |           ');
+            disp('|    | |        |_          ');
+            disp('|____| |________|_| |  Together everyone achieves more  |           ');
             disp(' ');
 
 
@@ -845,10 +845,12 @@ classdef ctmrGUI < handle
                 %disable grid settings
                 set(obj.controls.edtGrid, 'Enable','off');
                 set(obj.controls.btnAddGrid, 'Enable','off');
+                set(obj.controls.btnRemoveGrid, 'Enable','off');
             else
                 %enable grid settings
                 set(obj.controls.edtGrid, 'Enable','on');
                 set(obj.controls.btnAddGrid, 'Enable','on');
+                set(obj.controls.btnRemoveGrid, 'Enable','on');
             end
             
             %log
