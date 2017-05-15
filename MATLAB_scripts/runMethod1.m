@@ -1,0 +1,273 @@
+function [status] = runMethod1(obj)
+%     Copyright (C) 2009  D. Hermes & K.J. Miller, Dept of Neurology and Neurosurgery, University Medical Center Utrecht
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    
+% (C) Oct2015. Edited by Anna Gaglianese and Mariana Branco.
+
+
+%% NOTES;
+% This script uses freesurfer surface with electrode position extracted from 
+% high res CT 3dclusters (using ctmr scirpt from Dora).
+
+
+%% set directory and paths:
+
+if exist('./results/')==0
+    mkdir results
+    mkdir results/projected_electrodes_coord/
+end
+
+mypath = './results/';
+addpath(mypath);
+status = 1;
+
+subject = obj.settings.subject;
+
+%remove old files
+system(['rm ./results/' subject '*']);
+system(['rm ./results/CM*']);
+
+%% 1.1) generate surface to project electrodes to
+hemisphere = obj.settings.Hemisphere;
+if strcmp(hemisphere, 'Left')
+    hemi = 'l';
+else
+    hemi = 'r';
+end
+
+if exist(['./results/' subject '_balloon_11_03.img'])==0
+    % if using freesurfer:
+    get_mask_from_FreeSurfer(subject,... % subject name
+        './data/FreeSurfer/t1_class.nii',... % freesurfer class file
+        './results/',... % where you want to safe the file
+        hemi,... % 'l' for left 'r' for right
+        11,0.3); % settings for smoothing and threshold
+    %Visualize the surface with afni or mricron
+    %saved as subject_balloon_11_03, where 11 and 0.3 are the chosen parameters.
+end
+
+%% 1.2) Convert DICOM to NIFTI + Coregistration + 3dClustering + electrode selection and sorting
+
+% coregister CT to anatomical MR using Afni and preserving CT resolution.
+% extract electrodes clusters using 3D clustering
+
+% extract CM using AFNI-SUMA plug-in.
+CM = importdata('./data/3Dclustering/electrode_CM.1D');
+CM = CM.data(:,[1:4]);
+elecCoord = [-CM(:,1:2) CM(:,3)];
+
+elecNum    = CM(:,4);
+
+%check for empty rows and put NANs
+elecmatrix = zeros(elecNum(end),3); % create empty array 
+auxk = 2;
+
+elecmatrix(1,:) = elecCoord(1,:);
+for k=2:length(elecNum)
+    
+    if elecNum(k)-elecNum(k-1)~= 1
+        elecmatrix(elecNum(k-1)+1:elecNum(k)-1,:) = nan;
+        auxk = elecNum(k);
+        elecmatrix(auxk,:) = elecCoord(k,:);
+        auxk = auxk+1;
+    else
+        elecmatrix(auxk,:) = elecCoord(k,:);
+        auxk = auxk +1;
+    end
+end
+
+save([mypath 'CM_electrodes_sorted_all.mat'],'elecmatrix');
+
+
+%% 4) Tansform coordinates to subject ANAT space:
+
+load([mypath 'CM_electrodes_sorted_all.mat']);
+
+Tmatrix = dlmread('./data/coregistration/CT_highresRAI_res_shft_al_mat.aff12.1D');
+Tmatrix2 = dlmread('./data/coregistration/CT_highresRAI_shft.1D');
+
+T = [reshape(Tmatrix',4,3)  [0 0 0 1]']';
+T2 = [reshape(Tmatrix2',4,3)  [0 0 0 1]']';
+T3 = T2*T;
+
+coord_al_anatSPM = [];
+coord_al_anat = [];
+
+for i = 1:size(elecmatrix,1)
+    
+  coord = [-elecmatrix(i,1:2) elecmatrix(i,3) 1];
+  coord_al_anat(i,:) = T3\coord' ; % = inv(T)*coord'
+  coord_al_anatSPM(i,:) = [-coord_al_anat(i,1:2) coord_al_anat(i,3)]; 
+  
+end
+
+%%%%%%% SPM alignement:
+% T = [0.9979    0.0622    0.0154  -13.5301;...
+%   -0.0629    0.9971    0.0428   -7.2991;...
+%   -0.0127   -0.0437    0.9990  -19.1397;...
+%         0         0         0    1.0000];
+%
+%coord_al_anatSPM = [];
+%
+%for i = 1:size(elecmatrix,1)  
+%  coord = [elecmatrix(i,1:3) 1]; %spm mode
+%  coord_al_anatSPM(i,:) = inv(T)*coord' ;  
+%end
+%%%%%%%%%%%%%%%%%
+
+% check result:
+% figure,
+% plot3(coord_al_anatSPM(:,1),coord_al_anatSPM(:,2),coord_al_anatSPM(:,3),'.','MarkerSize',20); hold on;
+% plot3(elecmatrix(:,1),elecmatrix(:,2),elecmatrix(:,3),'.r','MarkerSize',20); legend('aligned');
+
+elecmatrix = coord_al_anatSPM(:,1:3);
+save([mypath 'CM_electrodes_sorted_all_aligned.mat'],'elecmatrix');
+
+
+%% 5) project electrodes 2 surface
+system(['rm ./results/' subject '_singleGrid*']);
+
+load([mypath 'CM_electrodes_sorted_all_aligned.mat']);
+
+% electrodes2surf(subject,localnorm index,do not project electrodes closer than 3 mm to surface)
+
+% electrodes are projected per grid with electrodes2surf.m
+% in this example there were 7 grids
+
+% electrodes2surf(
+    % 1: subject
+    % 2: number of electrodes local norm for projection (0 = whole grid)
+    % 3: 0 = project all electrodes, 1 = only project electrodes > 3 mm
+    %    from surface, 2 = only map to closest point (for strips)
+    % 4: electrode numbers
+    % 5: (optional) electrode matrix.mat (if not given, SPM_select popup)
+    % 6: (optional) surface.img (if not given, SPM_select popup)
+    % 7: (optional) mr.img for same image space with electrode
+    %    positions
+% automatically saves:
+%       a matrix with projected electrode positions 
+%       a nifti image with projected electrodes
+% saved as electrodes_onsurface_filenumber_inputnr2
+
+electrodes_path = [mypath 'CM_electrodes_sorted_all_aligned.mat'];
+surface_path = [mypath subject '_balloon_11_03.img'];
+anatomy_path = './data/FreeSurfer/t1_class.nii';
+
+
+for g=1:size(obj.settings.Grids,2)
+    
+    grid = obj.settings.Grids{g};
+    %find comas:
+    comas = strfind(grid,',');
+    
+    gridLabel = grid(1:comas(1)-1);
+    
+    gridEls   = str2num(grid(comas(1)+1:comas(2)-1));
+    
+    gridSize  = str2num(grid(comas(2)+1:end));
+    
+    if min(gridSize)==1
+        %strip
+        parm(1) = 0;
+        parm(2) = 2;
+    elseif min(gridSize)==2
+        %small grid 2xN
+        parm(1) = 4;
+        parm(2) = 1;
+    elseif min(gridSize)>2
+        %big grids: 3xN, 4xN, 6xN, 8xN
+        parm(1) = 5;
+        parm(2) = 1;
+    else
+         disp('! WARNING: Grid cannot have dimension 0. Please add grid again.');
+         %log
+         str = get(obj.controls.txtLog, 'string');
+         if length(str)>=obj.settings.NUM_LINES
+             str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+         end
+         set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Grid cannot have dimension 0. Please add grid again.'});
+         loggingActions(obj.settings.currdir,3,' >! WARNING: Grid cannot have dimension 0. Please add grid again.');        
+    end
+    
+    try
+        [out_els,out_els_ind]=electrodes2surf_FreeSurfer(subject,parm(1),parm(2),gridEls,electrodes_path, surface_path, anatomy_path, mypath);
+    catch
+        parm(2) = 2;
+        [out_els,out_els_ind]=electrodes2surf_FreeSurfer(subject,parm(1),parm(2),gridEls,electrodes_path, surface_path, anatomy_path, mypath);
+    end
+    
+    elecmatrix(gridEls,:) = out_els;
+    
+end
+%save as subject_singleGrid_projectedElectrodes_FreeSurfer_X_parm1_parm2,
+%where X is the number of the generated file (1 for the first file with
+%parameters X, Y and 2 for second file with same parameters),
+%and parm1 and parm2 the 2nd and 3rd of the projection function.
+
+    
+%% 6) combine electrode files into one 
+
+% save all projected electrode locaions in a .mat file
+save([mypath subject '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix');
+
+
+% make a NIFTI image with all projected electrodes
+[output,els,els_ind,outputStruct]=...
+    position2reslicedImage2(elecmatrix,anatomy_path);
+
+for filenummer=1:100
+    outputStruct.fname=[mypath subject '_projectedElectrodes_FreeSurfer_3dclust' int2str(filenummer) '.img' ];
+    if ~exist(outputStruct.fname,'file')>0
+        disp(['saving ' outputStruct.fname]);
+        % save the data
+        spm_write_vol(outputStruct,output);
+        break
+    end
+end
+
+%% 7) generate cortex to render images:
+
+hemisphere = obj.settings.Hemisphere;
+if strcmp(hemisphere, 'Left')
+    % from freesurfer: in mrdata/.../freesurfer/mri
+    gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_L'],0.5,[15 3],'l',mypath);
+    display_view = [270 0];
+    % load cortex
+    load([mypath subject '_L_cortex.mat']);
+    save([mypath '/projected_electrodes_coord/' subject '_L_cortex.mat'],'cortex');
+    
+elseif strcmp(hemisphere, 'Right')
+    % from freesurfer: in mrdata/.../freesurfer/mri
+    gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_R'],0.5,[15 3],'r',mypath);
+    display_view = [90 0];
+    % load cortex
+    load([mypath subject '_R_cortex.mat']);
+    save([mypath '/projected_electrodes_coord/' subject '_R_cortex.mat'],'cortex');
+end
+
+%% 8) plot electrodes on surface
+
+% load electrodes on surface
+load([mypath subject '_projectedElectrodes_FreeSurfer_3dclust.mat']);
+% save final folder
+save([mypath '/projected_electrodes_coord/' subject '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix')
+
+ctmr_gauss_plot(cortex,[0 0 0],0);
+el_add(elecmatrix,'r',20);
+label_add(elecmatrix)
+loc_view(display_view(1), display_view(2));
+
+
+
