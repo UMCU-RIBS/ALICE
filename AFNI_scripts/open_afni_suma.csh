@@ -12,7 +12,7 @@ set PIF = DriveAfniElectrodes    #A string identifying programs launched by this
                            #Get a free line and tag programs from this script
 set NPB = "-npb `afni -available_npb_quiet` -pif $PIF -echo_edu" 
 set surfcoords = "surf_xyz.1D"  # record the electrode positions in a text file - this one gets the position at the surface
-set surfcoords_i = "surf_ixyz.1D"  # record the electrode positions in a text file - this one gets the position at surface with index
+#set surfcoords_i = "surf_ixyz.1D"  # record the electrode positions in a text file - this one gets the position at surface with index
 set sumasurf = lastsurfout.txt 
 set ct = "CT+orig"
 set clust_surf = "3dclusters.gii"
@@ -54,7 +54,7 @@ sleep 1
 # delete copy of previous surface coordinates and region if it exists
 if -e $surfcoords then
    mv $surfcoords $surfcoords.old
-   mv $surfcoords_i $surfcoords_i.old
+#  mv $surfcoords_i $surfcoords_i.old
 endif
 
 # coordinates sent to text file by AFNI with plugout xyz
