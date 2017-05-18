@@ -285,6 +285,7 @@ classdef ctmrGUI < handle
             if folderName~=0
                 obj.settings.currdir = [folderName '/'];
                 cd(folderName);
+                
                 %log
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
@@ -339,8 +340,9 @@ classdef ctmrGUI < handle
                     loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 end
                 
-                if exist('./log_info/settings.mat')==2
-                    load('./log_info/settings.mat');
+                if exist([obj.settings.currdir '/log_info/settings.mat'])==2
+                    
+                    load([obj.settings.currdir '/log_info/settings.mat']);
                     try
                         obj.settings.R = settings.R;
                         obj.settings.CV = settings.CV;
@@ -356,7 +358,16 @@ classdef ctmrGUI < handle
                         obj.settings.Hemisphere = settings.Hemisphere;
                         obj.settings.Method = settings.Method;
                         set(obj.controls.edtSbjName, 'String',obj.settings.subject);
-                        set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
+                        if ~isempty(obj.settings.Grids)
+                            set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
+                            %log
+                            str = get(obj.controls.txtLog, 'string');
+                            if length(str)>=obj.settings.NUM_LINES
+                                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                            end
+                            set(obj.controls.txtLog, 'string',{str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
+                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
+                        end
                         if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
                             set(obj.controls.radiobtn1,'Value', 1);
                             set(obj.controls.radiobtn2,'Value', 0);
@@ -382,6 +393,8 @@ classdef ctmrGUI < handle
                     loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
                 end
                 
+                addpath(genpath(obj.settings.currdir));
+                
             else %if no directory is selected
                 disp('! WARNING: No directory selected.');
                 %log
@@ -390,11 +403,14 @@ classdef ctmrGUI < handle
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
                 set(obj.controls.txtLog, 'string',{str{:},'> WARNING: No directory selected.'});
-%                 loggingActions(obj.settings.currdir,1,' > WARNING: No directory selected.');
+
             end
         end
         
         function AlignCTtoMRI( obj )
+            
+            cd(obj.settings.currdir);
+            
             if obj.settings.loaded(1) == 1 && obj.settings.loaded(3) == 1
                 %log before
                 str = get(obj.controls.txtLog, 'string');
@@ -450,9 +466,12 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: CT and MRI scans are not loaded yet. Use the buttons in Step 1 to load them.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: CT and MRI scans are not loaded yet. Use the buttons in Step 1 to load them.');
             end
+            
         end
         
         function ExtractClusters ( obj )
+            
+            cd(obj.settings.currdir);
             
             if obj.settings.loaded(3) == 1
                 
@@ -507,60 +526,49 @@ classdef ctmrGUI < handle
         
         function SelectElectrodes( obj )
             
-            %current directory : /3D-CTMR
-            if strcmp([pwd '/'], obj.settings.currdir)
+            cd(obj.settings.currdir);
+            
+            %check if file exists
+            if exist([obj.settings.currdir '/data/3Dclustering/3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii']) ~=0
                 
-                %check if file exists
-                if exist(['./data/3Dclustering/3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii']) ~=0
-                    
-                    %log before select electrodes
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:}, '> Time to select the electrodes! Please select them according to the leads order.'});
-                    loggingActions(obj.settings.currdir,2,' > Time to select the electrodes! Please select them according to the leads order.');
-                    
-                    %move to 3dclustering folder
-                    cd([obj.settings.currdir './data/3Dclustering/']);
-                    
-                    %define input file
-                    clust_set  = ['3dclusters_r' num2str(obj.settings.R) '_is'...
-                        num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'];
-                    clust_surf = ['3dclusters_r' num2str(obj.settings.R) '_is' ...
-                        num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii'];
-                    
-                    %open afni and suma:
-                    system(['tcsh open_afni_suma.csh -CT_path ../coregistration/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
-                    
-                    selectElGUI( obj.settings, obj.controls );
-                    
-                    %display instruction box:
-                    h = msgbox({['Time to select the electrodes!'], ['Please have the leads order (electrode layout) at hand.'],...
-                        [' '],['AFNI and SUMA interfaces will open, ', 'and you will see the electrodes clusters both in the volume and the surface spaces.'], ...
-                        [' '],['With right click you can select the electrode on the surface,', ' and with the left click on the volume space.'],...
-                        ['Use the click+drag to navigate in SUMA, scroll to zoom in and out and scroll-lock for panning.'],...
-                        [' '],['Please use the matlab pop-up window to select the electrodes.'],...
-                        },'Time to select electrodes!', 'help');
-                    
-                else
-                    %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:}, ['>! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']});
-                    loggingActions(obj.settings.currdir,2,[' >! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']);
-                end
-                
-            %in wrong folder...
-            else
+                %log before select electrodes
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:}, ['>! ERROR: Please set the folder /3D-CTMR as current directory.']});
-                loggingActions(obj.settings.currdir,2,[' >! ERROR: Please set the folder /3D-CTMR as current directory.']);
+                set(obj.controls.txtLog, 'string',{str{:}, '> Time to select the electrodes! Please select them according to the leads order.'});
+                loggingActions(obj.settings.currdir,2,' > Time to select the electrodes! Please select them according to the leads order.');
+                
+                %move to 3dclustering folder
+                cd([obj.settings.currdir '/data/3Dclustering/']);
+                
+                %define input file
+                clust_set  = ['3dclusters_r' num2str(obj.settings.R) '_is'...
+                    num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'];
+                clust_surf = ['3dclusters_r' num2str(obj.settings.R) '_is' ...
+                    num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii'];
+                
+                %open afni and suma:
+                system(['tcsh open_afni_suma.csh -CT_path ../coregistration/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
+                
+                selectElGUI( obj.settings, obj.controls );
+                
+                %display instruction box:
+                h = msgbox({['Time to select the electrodes!'], ['Please have the leads order (electrode layout) at hand.'],...
+                    [' '],['AFNI and SUMA interfaces will open, ', 'and you will see the electrodes clusters both in the volume and the surface spaces.'], ...
+                    [' '],['With right click you can select the electrode on the surface,', ' and with the left click on the volume space.'],...
+                    ['Use the click+drag to navigate in SUMA, scroll to zoom in and out and scroll-lock for panning.'],...
+                    [' '],['Please use the matlab pop-up window to select the electrodes.'],...
+                    },'Time to select electrodes!', 'help');
+                
+            else
+                %log
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:}, ['>! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']});
+                loggingActions(obj.settings.currdir,2,[' >! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']);
             end
         end
         
@@ -578,8 +586,8 @@ classdef ctmrGUI < handle
             disp('|    | |        |_          ');
             disp('|____| |________|_| |  Together everyone achieves more  |           ');
             disp(' ');
-
-
+            
+            
         end
         
         %locate directory
@@ -598,9 +606,11 @@ classdef ctmrGUI < handle
         %open MRI
         function btnOpenMRI( obj, hObject, ~ )
             
+            cd(obj.settings.currdir);
+            
             %clean up previous MRI
-            if length(dir('./data/MRI/'))>2
-                delete(['./data/MRI/*.nii']);
+            if length(dir([obj.settings.currdir '/data/MRI/']))>2
+                delete([obj.settings.currdir '/data/MRI/*.nii']);
                 
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -617,7 +627,7 @@ classdef ctmrGUI < handle
                 obj.settings.MRI = [PathName FileName];
                 obj.settings.loaded(1) = 1;
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                 %log
@@ -627,7 +637,7 @@ classdef ctmrGUI < handle
                 end
                 set(obj.controls.txtLog, 'string',{str{:},['> MRI scan selected: ' obj.settings.MRI]});
                 loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
-            
+                
             else
                 disp('! WARNING: MRI scan not selected.');
                 %log
@@ -642,6 +652,9 @@ classdef ctmrGUI < handle
         
         %open FS
         function btnOpenFS( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
+            
             [FileName, PathName] = uigetfile('../*.nii');
             if FileName~=0
                 %rename FS ribbon to t1_class.nii
@@ -649,7 +662,7 @@ classdef ctmrGUI < handle
                 obj.settings.FS = [PathName 't1_class.nii'];
                 obj.settings.loaded(2) = 1;
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 set(obj.controls.txtFS, 'string', ['...' obj.settings.FS(end-18:end)]);
                 %log
@@ -673,6 +686,9 @@ classdef ctmrGUI < handle
         
         %Open CT
         function btnOpenCT1( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
+            
             [FileName, PathName] = uigetfile('../*.nii');
             if FileName~=0
                 %rename CT to CT_highresRAI.nii
@@ -685,7 +701,7 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-20:end)]);
                 
                 %extract ct max value
-                system('3dBrickStat -slow ./data/CT/CT_highresRAI.nii > temp_ct_val.txt');
+                system(['3dBrickStat -slow ' obj.settings.currdir '/data/CT/CT_highresRAI.nii > temp_ct_val.txt']);
                 Faux = fopen('temp_ct_val.txt');
                 obj.settings.CV = fscanf(Faux, '%d')-5;
                 set(obj.controls.edtCV, 'string', {num2str(obj.settings.CV)});
@@ -694,7 +710,7 @@ classdef ctmrGUI < handle
                 
                 %save settings
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log CT
                 str = get(obj.controls.txtLog, 'string');
@@ -712,7 +728,7 @@ classdef ctmrGUI < handle
                 end
                 set(obj.controls.txtLog, 'string',{str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
                 loggingActions(obj.settings.currdir,2,[' > Electrode maximum intensity selected: ' num2str(obj.settings.CV)]);
-
+                
             else
                 disp('! WARNING: CT scan not selected.');
                 %log
@@ -750,7 +766,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Maximum intensity must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -780,7 +796,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Electrode volume must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -809,7 +825,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Interelectrode space must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -862,7 +878,7 @@ classdef ctmrGUI < handle
             loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Method ' selected.']);
             
         end
-
+        
         %choose hemisphere
         function radiobtnSelectionHemisphere( obj, hObject, callbackdata )
             
@@ -880,6 +896,8 @@ classdef ctmrGUI < handle
         
         %grid settings
         function btnAddGrid( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
             
             %evaluate with crtl+enter!
             auxGrid = get(obj.controls.edtGrid, 'string');
@@ -900,9 +918,9 @@ classdef ctmrGUI < handle
                 obj.settings.Grids = [obj.settings.Grids, {auxGrid}];
                 gridnum = length(obj.settings.Grids);
                 set(obj.controls.btnRemoveGrid, 'enable', 'on');
-
+                
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -918,7 +936,9 @@ classdef ctmrGUI < handle
         %remove grid
         function btnRemoveGrid( obj, hObject, ~)
             
-            %remove grid          
+            cd(obj.settings.currdir);
+            
+            %remove grid
             if ~isempty(obj.settings.Grids)
                 
                 if length(obj.settings.Grids)==1
@@ -933,7 +953,7 @@ classdef ctmrGUI < handle
                     loggingActions(obj.settings.currdir,3,[' > All grid settings have been removed.']);
                     
                 else
-                    obj.settings.Grids = obj.settings.Grids(1:end-1); 
+                    obj.settings.Grids = obj.settings.Grids(1:end-1);
                     %log
                     str = get(obj.controls.txtLog, 'string');
                     if length(str)>=obj.settings.NUM_LINES
@@ -943,15 +963,26 @@ classdef ctmrGUI < handle
                     loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
                 end
                 
-               
-            end
                 
+            end
+            
         end
         
         %visualize results
         function btnVisualize( obj, hObject, ~ )
             
             cd(obj.settings.currdir);
+            
+            if ~isfield(obj.settings, 'FS')
+                %log
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Please load a FreeSurfer segmentation!'});
+                loggingActions(obj.settings.currdir,3,' >! WARNING: Please load a FreeSurfer segmentation!');
+                return;
+            end
             
             subject = get(obj.controls.edtSbjName, 'String');
             
@@ -970,7 +1001,7 @@ classdef ctmrGUI < handle
             else
                 obj.settings.subject = subject;
                 settings = obj.settings;
-                save('./log_info/settings', 'settings');
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
                 %log
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES

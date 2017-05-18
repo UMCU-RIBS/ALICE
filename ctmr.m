@@ -10,9 +10,6 @@
 close all; clear all; clc;
 
 thisDirectory = pwd;
-addpath( genpath( thisDirectory ) );
-
-addpath( '/home/mariana/Documents/MATLAB/Toolboxes/' );
 
 disp('                                         ');
 disp(' ****** Welcome to 3D-CTMR ******           ');
