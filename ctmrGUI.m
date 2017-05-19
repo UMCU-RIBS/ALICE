@@ -371,9 +371,15 @@ classdef ctmrGUI < handle
                         if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
                             set(obj.controls.radiobtn1,'Value', 1);
                             set(obj.controls.radiobtn2,'Value', 0);
-                        else
+                            set(obj.controls.edtGrid, 'Enable','on');
+                            set(obj.controls.btnAddGrid, 'Enable','on');
+                            set(obj.controls.btnRemoveGrid, 'Enable','on')
+                        else %if HD method
                             set(obj.controls.radiobtn1,'Value', 0);
                             set(obj.controls.radiobtn2,'Value', 1);
+                            set(obj.controls.edtGrid, 'Enable','off');
+                            set(obj.controls.btnAddGrid, 'Enable','off');
+                            set(obj.controls.btnRemoveGrid, 'Enable','off')
                         end
                         if strcmp(obj.settings.Hemisphere, 'Left')
                             set(obj.controls.radiobtn3,'Value', 1);
@@ -973,6 +979,7 @@ classdef ctmrGUI < handle
             
             cd(obj.settings.currdir);
             
+            %if no FS
             if ~isfield(obj.settings, 'FS')
                 %log
                 str = get(obj.controls.txtLog, 'string');
@@ -986,6 +993,7 @@ classdef ctmrGUI < handle
             
             subject = get(obj.controls.edtSbjName, 'String');
             
+            %if subject name is empty
             if isempty(subject) || strcmp(subject,'')
                 obj.settings.subject = ' ';
                 disp('>! WARNING: No name entered.');
@@ -998,6 +1006,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,3,' >! WARNING: No name entered. Try again!');
                 status = 0;
                 return;
+            
             else
                 obj.settings.subject = subject;
                 settings = obj.settings;
@@ -1013,14 +1022,15 @@ classdef ctmrGUI < handle
             
             if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
                 
-                disp(['> Applying ' obj.settings.Method '...']);
+                disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 %log
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '...']});
-                loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '...']);
+                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
+                loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
+                pause(1);
                 
                 status = runMethod1(obj);
                 
@@ -1038,14 +1048,15 @@ classdef ctmrGUI < handle
                 
             elseif strcmp(obj.settings.Method, 'Method HD')
                 
-                disp(['> Applying ' obj.settings.Method '...']);
+                disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 %log
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '...']});
-                loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '...']);
+                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
+                loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
+                pause(1);
                 
                 status = runHD(obj);
                 
