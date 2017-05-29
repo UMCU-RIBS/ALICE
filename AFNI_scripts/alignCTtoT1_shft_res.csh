@@ -30,7 +30,11 @@
 align_epi_anat.py -dset1 $t1 -dset2  CT_highresRAI_res_shft.nii -dset1_strip None -dset2_strip None -dset2to1 -suffix _al  -feature_size 1  -overwrite -cost nmi -giant_move -rigid_body
 
 3dcopy  CT_highresRAI_res_shft_al+orig CT_highresRAI_res_al.nii
-afni CT_highresRAI_res_al.nii $t1 
+
+3dcopy $t1 ./temp_ANAT.nii
+
+afni -com "SWITCH_UNDERLAY temp_ANAT.nii" -com "SWITCH_OVERLAY CT_highresRAI_res_al.nii" 
+
 
 
 HELP:
