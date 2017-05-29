@@ -481,6 +481,9 @@ classdef ctmrGUI < handle
             
             if obj.settings.loaded(3) == 1
                 
+                system(['rm ' obj.settings.currdir '/data/coregistration/temp_ANAT.nii']);
+                system(['rm ' obj.settings.currdir '/data/coregistration/CT_highresRAI.nii']);
+                
                 %log before 3dclustering
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
