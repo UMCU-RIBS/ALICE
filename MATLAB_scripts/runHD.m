@@ -65,7 +65,12 @@ end
 
 % extract CM using AFNI-SUMA plug-in.
 elecmatrix = importdata('./data/3Dclustering/electrode_CM.1D');
-elecmatrix = elecmatrix.data(:,[1:3]);
+
+%remove repeated electrodes.
+[~, index] = unique(elecmatrix.data(:,4), 'last');
+
+elecmatrix = elecmatrix.data(index,[1:3]);
+
 elecmatrix = [-elecmatrix(:,1:2) elecmatrix(:,3)];
 
 save([mypath 'CM_electrodes_sorted_all.mat'],'elecmatrix');
