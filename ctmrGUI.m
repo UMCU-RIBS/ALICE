@@ -55,15 +55,15 @@ classdef ctmrGUI < handle
             
             %Frame 1
             obj.controls.frame1 = uipanel( 'Parent', obj.mainFig, 'Units', 'pixels', 'Position', [startingPointFrame(1) frameheight+40 round(width/3)-20 height-250], ...
-                'Title', '1. CT-MR Co-registration', 'FontSize', 12, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
+                'Title', '1. CT-MR Co-registration', 'FontSize', 12,'Visible', 'off', 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
             
             %Frame 2
             obj.controls.frame2 = uipanel( 'Parent', obj.mainFig, 'Units', 'pixels', 'Position', [startingPointFrame(2) frameheight+40 round(width/3)-20 height-250], ...
-                'Title', '2. Electrode Selection', 'FontSize', 12, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
+                'Title', '2. Electrode Selection', 'FontSize', 12, 'Visible', 'off','FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
             
             %Frame 3
             obj.controls.frame3 = uipanel( 'Parent', obj.mainFig, 'Units', 'pixels', 'Position', [startingPointFrame(3) frameheight+40 round(width/3)-20 height-250], ...
-                'Title', '3. Electrode Projection', 'FontSize', 12, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
+                'Title', '3. Electrode Projection', 'FontSize', 12,'Visible', 'off', 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [.5 .5 .5] );
             
             %% Inside frame 1:
             % SubFrame 1 inside frame 1
@@ -85,7 +85,7 @@ classdef ctmrGUI < handle
             %% Inside frame 2:
             % SubFrame 1 inside frame 2
             obj.controls.subframe4 = uipanel( 'Parent', obj.controls.frame2, 'Units', 'pixels', 'Position', [10 360 293 100], ...
-                'Title', 'Select CT scan', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
+                'Title', 'CT scan selected in Step 1', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
             
             % SubFrame 2 inside frame 2
             obj.controls.subframe5 = uipanel( 'Parent', obj.controls.frame2, 'Units', 'pixels', 'Position', [10 120 293 220], ...
@@ -141,11 +141,11 @@ classdef ctmrGUI < handle
             
             %% Inside subframe 4 - frame 2
             % Button 1 inside subframe 4
-            obj.controls.btnOpenCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'pushbutton', 'Position', [10 25 100 40], ...
-                'String', 'Open', 'Callback', @obj.btnOpenCT1, 'FontSize', 9 , 'FontWeight', 'bold');
+%             obj.controls.btnOpenCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'pushbutton', 'Position', [10 25 100 40], ...
+%                 'String', 'Open', 'Callback', @obj.btnOpenCT1, 'FontSize', 9 , 'FontWeight', 'bold');
             
             % text box inside subframe 4
-            obj.controls.txtCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'edit', 'Position', [115 26 168 36], ...
+            obj.controls.txtCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'edit', 'Position', [10 26 168+105 36], ...
                 'FontSize', 10, 'string', {' CT scan (*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
             %% Inside subframe 5 - frame 3
@@ -244,6 +244,12 @@ classdef ctmrGUI < handle
                 errordlg('A folder named 3D-CTMR already exists. Please choose another directory or rename the existing folder.');
                 
             else
+                %make panels visible
+                set(obj.controls.frame1,'Visible', 'on');
+                set(obj.controls.frame2,'Visible', 'on');
+                set(obj.controls.frame3,'Visible', 'on');
+                
+                %create directories
                 mkdir('3D-CTMR');
                 cd ./3D-CTMR;
                 obj.settings.currdir = [pwd '/'];
@@ -283,6 +289,12 @@ classdef ctmrGUI < handle
             
             folderName = uigetdir('.', 'Please locate 3D-CTMR folder.');
             if folderName~=0
+                
+                %make panels visible
+                set(obj.controls.frame1,'Visible', 'on');
+                set(obj.controls.frame2,'Visible', 'on');
+                set(obj.controls.frame3,'Visible', 'on');
+                
                 obj.settings.currdir = [folderName '/'];
                 cd(folderName);
                 
@@ -330,7 +342,7 @@ classdef ctmrGUI < handle
                     obj.settings.CT = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
                     obj.settings.loaded(3) = 1;
                     set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
-                    set(obj.controls.txtCT2, 'string',['...' obj.settings.CT(end-18:end)]);
+                    set(obj.controls.txtCT2, 'string',['...' obj.settings.CT(end-34:end)]);
                     %log
                     str = get(obj.controls.txtLog, 'string');
                     if length(str)>=obj.settings.NUM_LINES
@@ -429,12 +441,13 @@ classdef ctmrGUI < handle
                 
                 cd([obj.settings.currdir '/data/coregistration/']);
                 
-                %copy CT local
-                copyfile('../CT/CT_highresRAI.nii','.');
-                
                 %clean directory if already run before:
                 system('rm CT_highresRAI_*');
                 system('rm *.1D');
+                system('rm temp_*');
+                
+                %copy CT local
+                copyfile('../CT/CT_highresRAI.nii','.');
                 
                 %select T1
                 cdT1_path = '../MRI/';
@@ -447,21 +460,32 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,1, [' > tcsh alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path' T1_path]);
                 cd(obj.settings.currdir);
                 
-                %log after
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '> CT and MRI have been co-registered. Please check the results before proceeding.'});
-                loggingActions(obj.settings.currdir,1,' > CT and MRI have been co-registered. Please check the results before proceeding.');
+                f = fopen('./data/coregistration/status.txt');
+                S = fscanf(f,'%s');
                 
-                %display instruction box:
-                h = msgbox({['To check whether the alignment was successful,', ' please check the overlayed files in AFNI.'],...
-                    ['For that use the buttons OVERLAY and UNDERLAY ', 'to specify the CT and MRI, respectively. ', ...
-                    'Use the intensity button on the volume windows (9),', ' to decrease the intensity of the overlay.'],...
-                    [' '],['- If the alignment is good, please close AFNI and proceed to Step 2.'],...
-                    ['- If the alignment is NOT good, please contact m.pedrosobranco@umcutrecht.nl,',...
-                    ' and do NOT proceed to Step 2.']},'How to check if alignment was successful?', 'help');
+                if strcmp(S(end-20:end),'alignmentsuccessfully');
+                    
+                    %log after
+                    str = get(obj.controls.txtLog, 'string');
+                    if length(str)>=obj.settings.NUM_LINES
+                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                    end
+                    set(obj.controls.txtLog, 'string',{str{:}, '> CT and MRI have been co-registered. Please check the results before proceeding.'});
+                    loggingActions(obj.settings.currdir,1,' > CT and MRI have been co-registered. Please check the results before proceeding.');
+                    
+                    %display instruction box:
+                    h = msgbox({['To check whether the alignment was successful,', ' please check the overlayed files in AFNI.'],...
+                        ['For that use the buttons OVERLAY and UNDERLAY ', 'to specify the CT and MRI, respectively. ', ...
+                        'Use the intensity button on the volume windows (9),', ' to decrease the intensity of the overlay.'],...
+                        [' '],['- If the alignment is good, please close AFNI and proceed to Step 2.'],...
+                        ['- If the alignment is NOT good, please check the if the CT and MRI where correctly',...
+                        ' converted to *.nii. Check orientation and voxel sizes too.']},'How to check if alignment was successful?', 'help');
+                else
+                    %display instruction box:
+                    h = msgbox({['Alignment failed,', ' please check the input files.'],...
+                        ['Please check the if the CT and MRI where correctly',...
+                        ' converted to *.nii. Check orientation and voxel sizes too.']},'Alignment failed', 'error');
+                end
                 
             else
                 %log
@@ -496,15 +520,15 @@ classdef ctmrGUI < handle
                 %3dclustering
                 cd([obj.settings.currdir '/data/3Dclustering/']);
                 
-                if exist(['3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'])==0
+                if exist(['3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'])==0 && exist('../CT/CT_highresRAI.nii')==2
                     
-                    system(['tcsh 3dclustering.csh -CT_path ../coregistration/CT_highresRAI.nii -radius ' num2str(obj.settings.R) ' -interelectrode_space ' num2str(obj.settings.IS) ' -clip_value ' num2str(obj.settings.CV)]);
+                    system(['tcsh 3dclustering.csh -CT_path ../CT/CT_highresRAI.nii -radius ' num2str(obj.settings.R) ' -interelectrode_space ' num2str(obj.settings.IS) ' -clip_value ' num2str(obj.settings.CV)]);
                     %log after 3dclustering
                     str = get(obj.controls.txtLog, 'string');
                     if length(str)>=obj.settings.NUM_LINES
                         str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                     end
-                    set(obj.controls.txtLog, 'string',{str{:}, '> Electrode clusters extrated. Please check results and then close SUMA.'});
+                    set(obj.controls.txtLog, 'string',{str{:}, '> Electrode clusters extracted. Please check results and then close SUMA.'});
                     loggingActions(obj.settings.currdir,2,' > Electrode cluster extracted. Please check results and then close SUMA.');
                     system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
                 else
@@ -512,8 +536,8 @@ classdef ctmrGUI < handle
                     if length(str)>=obj.settings.NUM_LINES
                         str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                     end
-                    set(obj.controls.txtLog, 'string',{str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files.'});
-                    loggingActions(obj.settings.currdir,2,' > ! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files.');
+                    set(obj.controls.txtLog, 'string',{str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is inside /data/CT folder.'});
+                    loggingActions(obj.settings.currdir,2,' > ! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is inside /data/CT folder.');
                 end
                 
                 cd(obj.settings.currdir);
@@ -558,7 +582,7 @@ classdef ctmrGUI < handle
                     num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii'];
                 
                 %open afni and suma:
-                system(['tcsh open_afni_suma.csh -CT_path ../coregistration/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
+                system(['tcsh open_afni_suma.csh -CT_path ../CT/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
                 
                 selectElGUI( obj.settings, obj.controls );
                 
@@ -619,20 +643,26 @@ classdef ctmrGUI < handle
             
             %clean up previous MRI
             if length(dir([obj.settings.currdir '/data/MRI/']))>2
-                delete([obj.settings.currdir '/data/MRI/*.nii']);
+                choice = questdlg({[' '],['Other MRI scan(s) have have been found in ./data/MRI folder.'], ...
+                    ['If you choose to delete file(s), the existing file(s) will be deleted and replaced by the new file!'],[' ']},...
+                    'WARNING!', 'Delete old file(s)', 'Keep old file(s)', 'Delete old file(s)'); 
                 
-                %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                switch choice
+                    case 'Delete old file'
+                        delete([obj.settings.currdir '/data/MRI/*.nii']);
+                        %log
+                        str = get(obj.controls.txtLog, 'string');
+                        if length(str)>=obj.settings.NUM_LINES
+                            str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                        end
+                        set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: Deleting previously loaded MRI file.'});
                 end
-                set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: Deleting previously loaded MRI file.'});
             end
             
             [FileName, PathName] = uigetfile('../*.nii');
             
             if FileName~=0
-                copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName]);
+                copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
                 obj.settings.MRI = [PathName FileName];
                 obj.settings.loaded(1) = 1;
                 settings = obj.settings;
@@ -706,8 +736,8 @@ classdef ctmrGUI < handle
                 obj.settings.loaded(3) = 1;
                 
                 %update text boxes
-                set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-20:end)]);
-                set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-20:end)]);
+                set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
+                set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-34:end)]);
                 
                 %extract ct max value
                 system(['3dBrickStat -slow ' obj.settings.currdir '/data/CT/CT_highresRAI.nii > temp_ct_val.txt']);

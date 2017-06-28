@@ -30,10 +30,27 @@ else
 	Settings.GridFontSize	= 8;
 end
 
+%Check dependencies:
+spmpath = which('spm');
+system(['afni -help > afnipath.txt']);
 
-%%%% Run program:
-gui = ctmrGUI;
+f = fopen('afnipath.txt');
+S = fscanf(f,'%s');
 
+if isempty(spmpath)
+    errordlg( 'Please add first SPM 12 to your path.','ERROR!');
+
+elseif isempty(S)
+    errordlg( 'Please make sure to add AFNI and SUMA to your bash.','ERROR!');
+    
+else
+    
+    delete('afnipath.txt');
+    
+    %%%% Run program:
+    gui = ctmrGUI;
+    
+end
 
 
 

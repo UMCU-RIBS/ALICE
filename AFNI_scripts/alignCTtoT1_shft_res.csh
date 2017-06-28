@@ -27,7 +27,7 @@
 @Align_Centers -base $t1  -dset $ct
 3dresample -input CT_highresRAI_shft.nii -prefix CT_highresRAI_res_shft.nii  -master $t1  -dxyz 1 1 1 -rmode NN
 
-align_epi_anat.py -dset1 $t1 -dset2  CT_highresRAI_res_shft.nii -dset1_strip None -dset2_strip None -dset2to1 -suffix _al  -feature_size 1  -overwrite -cost nmi -giant_move -rigid_body
+align_epi_anat.py -dset1 $t1 -dset2  CT_highresRAI_res_shft.nii -dset1_strip None -dset2_strip None -dset2to1 -suffix _al  -feature_size 1  -overwrite -cost nmi -giant_move -rigid_body > status.txt
 
 3dcopy  CT_highresRAI_res_shft_al+orig CT_highresRAI_res_al.nii
 
