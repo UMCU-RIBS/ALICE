@@ -43,7 +43,7 @@ classdef ctmrGUI < handle
             
             % Main window
             windowPosition = [ round((screenSize(3)-width)/5), screenSize(4)-height-100, width, height+80];
-            obj.mainFig = figure( 'Name', '3D-CTMR: Developed by a Cast of Millions','OuterPosition', windowPosition, 'Menu', 'none', ...
+            obj.mainFig = figure( 'Name', 'ALICE: Developed by a Cast of Millions','OuterPosition', windowPosition, 'Menu', 'none', ...
                 'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest );
             
             %two buttons for create directory or locate directory:
@@ -231,7 +231,7 @@ classdef ctmrGUI < handle
             % Inside the Logging frame:
             % text box
             obj.controls.txtLog = uicontrol( 'Parent', obj.controls.logframe, 'Style', 'text','max',2, 'Position', [10 10 960 145+40], ...
-                'FontSize', 10, 'string', {'> Welcome to 3D-CTMR!', '> Please create a directory to start 3D-CTMR from scratch, or locate the existing directory.'}, 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
+                'FontSize', 10, 'string', {'> Welcome to ALICE!', '> Please create a directory to start ALICE from scratch, or locate the existing directory.'}, 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
         end
         
@@ -240,8 +240,8 @@ classdef ctmrGUI < handle
             obj.settings.originaldir = [pwd '/'];
             obj.settings.scripspath  = [fileparts( mfilename('fullpath') ) '/'];
             
-            if exist([pwd '/3D-CTMR'])==7
-                errordlg('A folder named 3D-CTMR already exists. Please choose another directory or rename the existing folder.');
+            if exist([pwd '/ALICE'])==7
+                errordlg('A folder named ALICE already exists. Please choose another directory or rename the existing folder.');
                 
             else
                 %make panels visible
@@ -250,8 +250,8 @@ classdef ctmrGUI < handle
                 set(obj.controls.frame3,'Visible', 'on');
                 
                 %create directories
-                mkdir('3D-CTMR');
-                cd ./3D-CTMR;
+                mkdir('ALICE');
+                cd ./ALICE;
                 obj.settings.currdir = [pwd '/'];
                 mkdir('log_info');
                 %data folder
@@ -280,14 +280,14 @@ classdef ctmrGUI < handle
                 if length(str)>=obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:},'> 3D-CTMR successfully created. Please proceed to Step 1.'});
-                loggingActions(obj.settings.currdir,1,' > 3D-CTMR successfully created. Please proceed to Step 1.');
+                set(obj.controls.txtLog, 'string',{str{:},'> ALICE successfully created. Please proceed to Step 1.'});
+                loggingActions(obj.settings.currdir,1,' > ALICE successfully created. Please proceed to Step 1.');
             end
         end
         
         function LocateDirectory( obj )
             
-            folderName = uigetdir('.', 'Please locate 3D-CTMR folder.');
+            folderName = uigetdir('.', 'Please locate ALICE folder.');
             if folderName~=0
                 
                 %make panels visible
@@ -303,8 +303,8 @@ classdef ctmrGUI < handle
                 if length(str)>=obj.settings.NUM_LINES
                     str = str(end-5:end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:},['> 3D-CTMR directory located: ' obj.settings.currdir],'> Please proceed to Step 1.'});
-                loggingActions(obj.settings.currdir,1,[' > 3D-CTMR directory located: ' obj.settings.currdir]);
+                set(obj.controls.txtLog, 'string',{str{:},['> ALICE directory located: ' obj.settings.currdir],'> Please proceed to Step 1.'});
+                loggingActions(obj.settings.currdir,1,[' > ALICE directory located: ' obj.settings.currdir]);
                 loggingActions(obj.settings.currdir,1,' > Please proceed to Step 1.');
                 %if files in folder then read them:
                 %MRI
@@ -476,7 +476,7 @@ classdef ctmrGUI < handle
                     %display instruction box:
                     h = msgbox({['To check whether the alignment was successful,', ' please check the overlayed files in AFNI.'],...
                         ['For that use the buttons OVERLAY and UNDERLAY ', 'to specify the CT and MRI, respectively. ', ...
-                        'Use the intensity button on the volume windows (9),', ' to decrease the intensity of the overlay.'],...
+                        'Use the intensity button on the volume windows (9),', ' to decrease/increase the intensity of the overlay.'],...
                         [' '],['- If the alignment is good, please close AFNI and proceed to Step 2.'],...
                         ['- If the alignment is NOT good, please check the if the CT and MRI where correctly',...
                         ' converted to *.nii. Check orientation and voxel sizes too.']},'How to check if alignment was successful?', 'help');
@@ -663,7 +663,7 @@ classdef ctmrGUI < handle
             
             if FileName~=0
                 copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
-                obj.settings.MRI = [PathName FileName];
+                obj.settings.MRI = [obj.settings.currdir 'data/MRI/' FileName];
                 obj.settings.loaded(1) = 1;
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
@@ -698,7 +698,7 @@ classdef ctmrGUI < handle
             if FileName~=0
                 %rename FS ribbon to t1_class.nii
                 copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
-                obj.settings.FS = [PathName 't1_class.nii'];
+                obj.settings.FS = [obj.settings.currdir 'data/FreeSurfer/t1_class.nii'];
                 obj.settings.loaded(2) = 1;
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
@@ -732,7 +732,7 @@ classdef ctmrGUI < handle
             if FileName~=0
                 %rename CT to CT_highresRAI.nii
                 copyfile([PathName FileName], [obj.settings.currdir 'data/CT/CT_highresRAI.nii']);
-                obj.settings.CT = [PathName 'CT_highresRAI.nii'];
+                obj.settings.CT = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
                 obj.settings.loaded(3) = 1;
                 
                 %update text boxes
