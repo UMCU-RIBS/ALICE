@@ -29,7 +29,7 @@ end
 
 	  # have suma report its current surface label - which cluster
 	  DriveSuma $NPB -com "get_label"
-	  set clustindex = `tail -1 $sumasurf`
+	  set clustindex = `tail -2 $sumasurf|head -1` #v2.0. old version=-1 $sumasurf`
 	  set xyzstr = `tail -1 $surfcoords`
 	  # output from plugout is of form "RAI xyz: x y z"
 	  # we can use just part of that
@@ -37,5 +37,22 @@ end
 
 echo $electrode_i $clustindex $xyzstr[3-5] $afni_sphere >> $surfcoords_i
 
+set clustval = `echo $clustindex | sed  's/roi//' |sed 's/(I,T,B)R=//'|\
+          sed 's/(I,T,B)numeric=//'`
 
+      # make 1/3 bright and add it to the list
+      # this doesn't change the data in any way here
+      # much smaller memory leak, 1000 iterations less that 256MB total for suma
+      set roistr = `ccalc -form "roi%3.3d" $clustval`
+      grep $roistr temproilist.txt
+      # If first time cluster has been identified, recolor to 1/3 brightness
+      #  could make else condition, rebrighten electrode
+      if ($status) then
+          set roirgb = `grep $roistr tempcmap.niml.cmap`
+          set rgbout =  ("1.0" "1.0" "1.0")         #old version: `1deval -a "1D:$roirgb[1-3]" -expr a/3`
+          sed -i "s/.*${roistr}.*/$rgbout 1 $clustval ${roistr}/" tempcmap.niml.cmap
+          DriveSuma $NPB -com surf_cont -switch_dset temp_marked_clusters.1D.dset 
+          DriveSuma $NPB -com surf_cont -load_cmap tempcmap.niml.cmap
+          echo $roistr >> temproilist.txt
+      endif
 

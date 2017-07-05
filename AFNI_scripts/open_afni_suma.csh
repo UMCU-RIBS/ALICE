@@ -41,6 +41,46 @@ while ($cnt < $#argv)
  @ cnt ++
 end
 
+
+####### START new code for el cluster shading v2.0 (MPBranco 300617)###########################
+
+set clust_surf_base = `basename -s .gii $clust_surf`
+set clust_niml_set = ${clust_surf_base}.niml.dset
+
+
+rm lastsurfout.txt temproilist.txt
+
+# make a temporary copy of the coloring dataset to recolor as we go
+set nlabels = `3dinfo -labeltable $clust_niml_set | grep ni_dimen | awk -F\" '{print $2}'`
+@ nlabels ++
+# copy just the labels from the niml dset
+3dinfo -labeltable $clust_niml_set | tail -$nlabels | grep -v VALUE_LABEL_DTABLE \
+   | tr -d \" > temp_labels.txt
+MakeColorMap -std ROI_i256 |tail -256 > roi256.1D
+# now create a proper SUMA compatible colormap by combining the two files
+#  index label RGBA
+@ nlabels --
+rm tempcmap.txt
+foreach li (`count -digits 1 1 $nlabels`)
+   set ind_label = `sed "${li}q;d" temp_labels.txt`
+   set rgb = `sed "${li}q;d" roi256.1D`
+   # put them all together (RGB are fractional values, Alpha=1)
+   # index label R G B A
+   # 1 electrode_1 0.1 0.4 0.02 1
+   echo $ind_label $rgb 1 >> tempcmap.txt
+end
+
+# create a non-colored copy of the dataset - just nodes and cluster indices
+ConvertDset -overwrite -input $clust_niml_set -dset_labels 'R' -o temp_marked_clusters.1D
+# make color map used below and updated too
+MakeColorMap -usercolutfile tempcmap.txt \
+      -suma_cmap tempcmap -overwrite >& /dev/null
+
+#      -sdset temp_marked_clusters.niml.dset \
+
+####### END of new code for el cluster shading v2.0###########################
+
+
 # if cluster dataset was not specified, try to find one
 if ($clustset == '') then
   set clustsets = (3dclusters_r?_is?.nii)
@@ -61,7 +101,9 @@ endif
 setenv AFNI_OUTPLUG $surfcoords
 # text output from suma driven command with cluster index with surface name
 setenv SUMA_OUTPLUG  $sumasurf
-suma $NPB -i $clust_surf -sv $ct >& ./sumaout.log  &
+suma $NPB -DSUMA_AllowDsetReplacement=YES -i $clust_surf -sv $ct >& ./sumaout.log  & #####edited for v2.0
+
+DriveSuma $NPB -com surf_cont -view_object_cont y
 
 # We need a way to click on the electrodes in the clinical order and 
 # find the correspondent center of mass coordinates in clst.1D file. 
@@ -71,9 +113,9 @@ suma $NPB -i $clust_surf -sv $ct >& ./sumaout.log  &
 plugout_drive  $NPB                                               \
                -com 'SWITCH_SESSION A.afni'                       \
                -com 'OPEN_WINDOW A.axialimage geom=600x600+416+44 \
-                     ifrac=0.8 opacity=9'                         \
+                     ifrac=0.8 opacity=5'                         \
                -com 'OPEN_WINDOW A.sagittalimage geom=+45+430     \
-                     ifrac=0.8 opacity=9'                         \
+                     ifrac=0.8 opacity=5'                         \
                -com "SWITCH_UNDERLAY $ct"                         \
                -com "SWITCH_OVERLAY $clustset"                    \
                -com 'SEE_OVERLAY +'                               \
@@ -86,5 +128,19 @@ DriveSuma $NPB \
           -com  viewer_cont -key t
 
 #        set l = `prompt_user -pause 
+
+
+####### START new code for el cluster shading v2.0 (MPBranco 300617)###########################
+sleep 2
+# update coloring to ROI_i256 instead of IsoSurface coloring (which might be the same anyway)
+#  and use copy of cluster niml dset for colors that gets updated below
+      DriveSuma $NPB -com surf_cont -load_dset temp_marked_clusters.1D.dset \
+          -surf_label $clust_surf
+      DriveSuma $NPB -com surf_cont -switch_dset temp_marked_clusters.1D.dset 
+      DriveSuma $NPB -com surf_cont -load_cmap tempcmap.niml.cmap
+      DriveSuma $NPB -com surf_cont -switch_cmap tempcmap -Dim 0.6 \
+                     -switch_cmode Dir -1_only Y
+####### END new code for el cluster shading v2.0 (MPBranco 300617)###########################
+
 
 echo $NPB > ecognpb.txt
