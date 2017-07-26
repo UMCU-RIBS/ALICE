@@ -496,6 +496,12 @@ classdef ctmrGUI < handle
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Electrode clusters extracted. Please check results and then close SUMA.'});
                     loggingActions(obj.settings.currdir,2,' > Electrode cluster extracted. Please check results and then close SUMA.');
                     system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
+                    
+                    %message box:
+                    h = msgbox({['The electrode-clusters have been extracted,', ' please check the result in SUMA.'],...
+                        ['After revision, close SUMA.'],[' '], ['To extract new clusters, select new settings and click ''Extract clusters''.'], ...
+                        ['Otherwise, click ''Select Electrodes'' to continue.']},'Check electrode-clusters', 'help');
+                
                 else
                     LogInfo(obj, 2);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is ','inside /data/CT folder.'});

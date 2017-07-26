@@ -43,7 +43,7 @@ classdef selectElGUI < handle
                 'FontSize', 13, 'string', {'Select electrode: 1'} , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
             %button 3: quit
             obj.controls.btnQuit = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 10 150 50 ], ...
-                'String', 'Quit', 'Callback', @obj.btnQuit, 'FontSize', 18 , 'FontWeight', 'bold', 'ForegroundColor', [0.5 0 0]);
+                'String', 'Finished!', 'Callback', @obj.btnQuit, 'FontSize', 18 , 'FontWeight', 'bold', 'ForegroundColor', [0.5 0 0]);
                     
         end
          
