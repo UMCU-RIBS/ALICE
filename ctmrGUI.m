@@ -35,6 +35,9 @@ classdef ctmrGUI < handle
             %empty grid settings:
             obj.settings.Grids = [];
             
+            %current numeber lines in action log
+            obj.settings.curr_num_lines = 0;
+            
             % Get screen size.
             screenSize = get(0,'ScreenSize');
             
@@ -141,8 +144,8 @@ classdef ctmrGUI < handle
             
             %% Inside subframe 4 - frame 2
             % Button 1 inside subframe 4
-%             obj.controls.btnOpenCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'pushbutton', 'Position', [10 25 100 40], ...
-%                 'String', 'Open', 'Callback', @obj.btnOpenCT1, 'FontSize', 9 , 'FontWeight', 'bold');
+            %             obj.controls.btnOpenCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'pushbutton', 'Position', [10 25 100 40], ...
+            %                 'String', 'Open', 'Callback', @obj.btnOpenCT1, 'FontSize', 9 , 'FontWeight', 'bold');
             
             % text box inside subframe 4
             obj.controls.txtCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'edit', 'Position', [10 26 168+105 36], ...
@@ -276,11 +279,8 @@ classdef ctmrGUI < handle
                 cd(obj.settings.currdir);
                 addpath(genpath(obj.settings.currdir));
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'> ALICE successfully created. Please proceed to Step 1.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> ALICE successfully created. Please proceed to Step 1.'});
                 loggingActions(obj.settings.currdir,1,' > ALICE successfully created. Please proceed to Step 1.');
             end
         end
@@ -299,11 +299,8 @@ classdef ctmrGUI < handle
                 cd(folderName);
                 
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str(end-5:end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> ALICE directory located: ' obj.settings.currdir],'> Please proceed to Step 1.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ALICE directory located: ' obj.settings.currdir],'> Please proceed to Step 1.'});
                 loggingActions(obj.settings.currdir,1,[' > ALICE directory located: ' obj.settings.currdir]);
                 loggingActions(obj.settings.currdir,1,' > Please proceed to Step 1.');
                 %if files in folder then read them:
@@ -315,11 +312,8 @@ classdef ctmrGUI < handle
                     obj.settings.loaded(1) = 1;
                     set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> MRI scan selected: ' obj.settings.MRI]});
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
                     loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
                 end
                 %FS
@@ -329,11 +323,8 @@ classdef ctmrGUI < handle
                     obj.settings.loaded(2) = 1;
                     set(obj.controls.txtFS, 'string',['...' obj.settings.FS(end-18:end)]);
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> FS segmentation selected: ' obj.settings.FS]});
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', obj.settings.FS});
                     loggingActions(obj.settings.currdir,1,[' > FS segmentation selected: ' obj.settings.FS]);
                 end
                 %CT
@@ -344,11 +335,8 @@ classdef ctmrGUI < handle
                     set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
                     set(obj.controls.txtCT2, 'string',['...' obj.settings.CT(end-34:end)]);
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> CT scan selected: ' obj.settings.CT]});
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
                     loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 end
                 
@@ -373,11 +361,8 @@ classdef ctmrGUI < handle
                         if ~isempty(obj.settings.Grids)
                             set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
                             %log
-                            str = get(obj.controls.txtLog, 'string');
-                            if length(str)>=obj.settings.NUM_LINES
-                                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                            end
-                            set(obj.controls.txtLog, 'string',{str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
+                            LogInfo(obj, 1);
+                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
                             loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
                         end
                         if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
@@ -403,25 +388,21 @@ classdef ctmrGUI < handle
                     end
                     
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
                     loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
                 end
                 
                 addpath(genpath(obj.settings.currdir));
+                obj.settings.scripspath  = [fileparts( mfilename('fullpath') ) '/'];
+                addpath(genpath(obj.settings.scripspath));
                 
             else %if no directory is selected
                 disp('! WARNING: No directory selected.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'> WARNING: No directory selected.'});
-
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> WARNING: No directory selected.'});
+                
             end
         end
         
@@ -431,11 +412,8 @@ classdef ctmrGUI < handle
             
             if obj.settings.loaded(1) == 1 && obj.settings.loaded(3) == 1
                 %log before
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '> Aligning CT to MRI. This procedure might take several minutes. Please wait...'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Aligning CT to MRI. This procedure might take several minutes. Please wait...'});
                 loggingActions(obj.settings.currdir,1,' > Aligning CT to MRI... This might take several minutes. Please wait...');
                 pause(1);
                 
@@ -456,8 +434,8 @@ classdef ctmrGUI < handle
                 T1_path   = [cdT1_path nameT1];
                 
                 %align:
-                system(['tcsh alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path ' T1_path]);
-                loggingActions(obj.settings.currdir,1, [' > tcsh alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path' T1_path]);
+                system(['tcsh -x alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path ' T1_path]);
+                loggingActions(obj.settings.currdir,1, [' > tcsh -x alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path' T1_path]);
                 cd(obj.settings.currdir);
                 
                 f = fopen('./data/coregistration/status.txt');
@@ -466,11 +444,8 @@ classdef ctmrGUI < handle
                 if strcmp(S(end-20:end),'alignmentsuccessfully');
                     
                     %log after
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:}, '> CT and MRI have been co-registered. Please check the results before proceeding.'});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> CT and MRI have been co-registered. Please check the results before proceeding.'});
                     loggingActions(obj.settings.currdir,1,' > CT and MRI have been co-registered. Please check the results before proceeding.');
                     
                     %display instruction box:
@@ -489,11 +464,8 @@ classdef ctmrGUI < handle
                 
             else
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: CT and MRI scans are not loaded yet. Use the buttons in Step 1 to load them.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! WARNING: CT and MRI scans are not loaded yet. Use the buttons in Step 1 to load them.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: CT and MRI scans are not loaded yet. Use the buttons in Step 1 to load them.');
             end
             
@@ -508,35 +480,25 @@ classdef ctmrGUI < handle
                 system(['rm ' obj.settings.currdir '/data/coregistration/temp_ANAT.nii']);
                 system(['rm ' obj.settings.currdir '/data/coregistration/CT_highresRAI.nii']);
                 
-                %log before 3dclustering
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '> Extracting electrode clusters. This procedure might take some minutes. Please wait...'});
-                loggingActions(obj.settings.currdir,2,' > Extracting electrode clusters. This procedure might take some minutes. Please wait...');
-                pause(1);
-                
                 %3dclustering
                 cd([obj.settings.currdir '/data/3Dclustering/']);
                 
                 if exist(['3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'])==0 && exist('../CT/CT_highresRAI.nii')==2
+                    %log before 3dclustering
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Extracting electrode clusters. This procedure might take some minutes. Please wait...'});
+                    loggingActions(obj.settings.currdir,2,' > Extracting electrode clusters. This procedure might take some minutes. Please wait...');
+                    pause(1);
                     
-                    system(['tcsh 3dclustering.csh -CT_path ../CT/CT_highresRAI.nii -radius ' num2str(obj.settings.R) ' -interelectrode_space ' num2str(obj.settings.IS) ' -clip_value ' num2str(obj.settings.CV)]);
+                    system(['tcsh -x 3dclustering.csh -CT_path ../CT/CT_highresRAI.nii -radius ' num2str(obj.settings.R) ' -interelectrode_space ' num2str(obj.settings.IS) ' -clip_value ' num2str(obj.settings.CV)]);
                     %log after 3dclustering
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:}, '> Electrode clusters extracted. Please check results and then close SUMA.'});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Electrode clusters extracted. Please check results and then close SUMA.'});
                     loggingActions(obj.settings.currdir,2,' > Electrode cluster extracted. Please check results and then close SUMA.');
                     system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
                 else
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is inside /data/CT folder.'});
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is ','inside /data/CT folder.'});
                     loggingActions(obj.settings.currdir,2,' > ! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is inside /data/CT folder.');
                 end
                 
@@ -544,11 +506,8 @@ classdef ctmrGUI < handle
                 
             else
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: CT was not loaded yet. Use the button in Step 2 to load it.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! WARNING: CT was not loaded yet. Use the button in Step 2 to load it.'});
                 loggingActions(obj.settings.currdir,2,' >! WARNING: CT was not loaded yet. Use the button in Step 2 to load it.');
                 
                 cd(obj.settings.currdir);
@@ -565,11 +524,8 @@ classdef ctmrGUI < handle
             if exist([obj.settings.currdir '/data/3Dclustering/3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii']) ~=0
                 
                 %log before select electrodes
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '> Time to select the electrodes! Please select them according to the leads order.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Time to select the electrodes! Please select them according to the leads order.'});
                 loggingActions(obj.settings.currdir,2,' > Time to select the electrodes! Please select them according to the leads order.');
                 
                 %move to 3dclustering folder
@@ -582,7 +538,7 @@ classdef ctmrGUI < handle
                     num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii'];
                 
                 %open afni and suma:
-                system(['tcsh open_afni_suma.csh -CT_path ../CT/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
+                system(['tcsh -x open_afni_suma.csh -CT_path ../CT/CT_highresRAI.nii -clust_set ' clust_set ' -clust_surf ' clust_surf ], '-echo');
                 
                 selectElGUI( obj.settings, obj.controls );
                 
@@ -596,13 +552,23 @@ classdef ctmrGUI < handle
                 
             else
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, ['>! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, ['>! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']});
                 loggingActions(obj.settings.currdir,2,[' >! WARNING: There is no 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii file in the /3Dclustering folder. Please check the settings above or extract clusters first.']);
             end
+        end
+        
+        function LogInfo( obj, offset )
+            
+            obj.settings.str = get(obj.controls.txtLog, 'string');
+            if length(obj.settings.str) > obj.settings.NUM_LINES
+                try
+                    obj.settings.str = obj.settings.str( (end - (obj.settings.NUM_LINES-offset)) :end);
+                catch
+                    obj.settings.str = obj.settings.str(offset+1:end);
+                end
+            end
+            
         end
         
     end
@@ -645,17 +611,15 @@ classdef ctmrGUI < handle
             if length(dir([obj.settings.currdir '/data/MRI/']))>2
                 choice = questdlg({[' '],['Other MRI scan(s) have have been found in ./data/MRI folder.'], ...
                     ['If you choose to delete file(s), the existing file(s) will be deleted and replaced by the new file!'],[' ']},...
-                    'WARNING!', 'Delete old file(s)', 'Keep old file(s)', 'Delete old file(s)'); 
+                    'WARNING!', 'Delete old file(s)', 'Keep old file(s)', 'Delete old file(s)');
                 
                 switch choice
-                    case 'Delete old file'
+                    case 'Delete old file(s)'
                         delete([obj.settings.currdir '/data/MRI/*.nii']);
                         %log
-                        str = get(obj.controls.txtLog, 'string');
-                        if length(str)>=obj.settings.NUM_LINES
-                            str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                        end
-                        set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: Deleting previously loaded MRI file.'});
+                        LogInfo(obj, 1);
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! WARNING: Deleting previously loaded MRI file.'});
+                        loggingActions(obj.settings.currdir,1,[' >! WARNING: Deleting previously loaded MRI file.']);
                 end
             end
             
@@ -670,21 +634,15 @@ classdef ctmrGUI < handle
                 
                 set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> MRI scan selected: ' obj.settings.MRI]});
+                LogInfo(obj, 2);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
                 loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
                 
             else
                 disp('! WARNING: MRI scan not selected.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:}, '>! WARNING: MRI scan not selected.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! WARNING: MRI scan not selected.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: MRI scan not selected.');
             end
         end
@@ -705,20 +663,14 @@ classdef ctmrGUI < handle
                 
                 set(obj.controls.txtFS, 'string', ['...' obj.settings.FS(end-18:end)]);
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> FS segmentation selected: ' obj.settings.FS]});
+                LogInfo(obj, 2);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', obj.settings.FS});
                 loggingActions(obj.settings.currdir,1,[' > FS segmentation selected: ' obj.settings.FS]);
             else
                 disp('! WARNING: FreeSurfer segmentation file not selected.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: FreeSurfer segmentation file not selected.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: FreeSurfer segmentation file not selected.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: FreeSurfer segmentation file not selected.');
             end
         end
@@ -730,15 +682,22 @@ classdef ctmrGUI < handle
             
             [FileName, PathName] = uigetfile('../*.nii');
             if FileName~=0
+                
                 %rename CT to CT_highresRAI.nii
                 copyfile([PathName FileName], [obj.settings.currdir 'data/CT/CT_highresRAI.nii']);
                 obj.settings.CT = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
                 obj.settings.loaded(3) = 1;
                 
+                %log CT
+                LogInfo(obj, 2);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
+                loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
+                loggingActions(obj.settings.currdir,2,[' > CT scan selected: ' obj.settings.CT]);
+               
                 %update text boxes
                 set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
                 set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-34:end)]);
-                
+                                
                 %extract ct max value
                 system(['3dBrickStat -slow ' obj.settings.currdir '/data/CT/CT_highresRAI.nii > temp_ct_val.txt']);
                 Faux = fopen('temp_ct_val.txt');
@@ -750,32 +709,17 @@ classdef ctmrGUI < handle
                 %save settings
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
-                
-                %log CT
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> CT scan selected: ' obj.settings.CT]});
-                loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
-                loggingActions(obj.settings.currdir,2,[' > CT scan selected: ' obj.settings.CT]);
-                
+                                
                 %log CV
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
                 loggingActions(obj.settings.currdir,2,[' > Electrode maximum intensity selected: ' num2str(obj.settings.CV)]);
                 
             else
                 disp('! WARNING: CT scan not selected.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: CT scan not selected.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settigns.str{:},'>! WARNING: CT scan not selected.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: CT scan not selected.');
                 loggingActions(obj.settings.currdir,2,' >! WARNING: CT scan not selected.');
             end
@@ -792,27 +736,25 @@ classdef ctmrGUI < handle
         function edtCV( obj, hObject, ~ )
             
             str = get(obj.controls.edtCV, 'string');
-            obj.settings.CV = str2num(str{1});
+            try
+                obj.settings.CV = str2num(str{1});
+            catch
+                obj.settings.CV = str2num(str);
+            end
             
             if isempty(obj.settings.CV)
                 disp('! WARNING: Maximum intensity must be an integer value bigger than 0.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Maximum intensity must be an integer value bigger than 0.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Maximum intensity must be an integer value bigger than 0.'});
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Maximum intensity must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
                 loggingActions(obj.settings.currdir,2,[' > Electrode maximum intensity selected: ' num2str(obj.settings.CV)]);
             end
             
@@ -822,27 +764,25 @@ classdef ctmrGUI < handle
         function edtR( obj, hObject, ~ )
             
             str = get(obj.controls.edtR, 'string');
-            obj.settings.R = str2num(str{1});
+            try
+                obj.settings.CV = str2num(str{1});
+            catch
+                obj.settings.CV = str2num(str);
+            end
             
             if isempty(obj.settings.R)
                 disp('! WARNING: Electrode volume must be an integer value bigger than 0.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Electrode volume must be an integer value bigger than 0.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Electrode volume must be an integer value bigger than 0.'});
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Electrode volume must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Electrode volume selected: ' num2str(obj.settings.R)]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Electrode volume selected: ' num2str(obj.settings.R)]});
                 loggingActions(obj.settings.currdir,2,[' > Electrode volume selected: ' num2str(obj.settings.R)]);
             end
         end
@@ -851,27 +791,25 @@ classdef ctmrGUI < handle
         function edtIS( obj, hObject, ~ )
             
             str = get(obj.controls.edtIS, 'string');
-            obj.settings.IS = str2num(str{1});
+            try
+                obj.settings.CV = str2num(str{1});
+            catch
+                obj.settings.CV = str2num(str);
+            end
             
             if isempty(obj.settings.IS)
                 disp('! WARNING: Interelectrode space must be an integer value bigger than 0.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Interelectrode space must be an integer value bigger than 0.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Interelectrode space must be an integer value bigger than 0.'});
                 loggingActions(obj.settings.currdir,2,' >! WARNING: Interelectrode space must be an integer value bigger than 0.');
             else
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Interelectrode space selected: ' num2str(obj.settings.IS)]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Interelectrode space selected: ' num2str(obj.settings.IS)]});
                 loggingActions(obj.settings.currdir,2,[' > Interelectrode space selected: ' num2str(obj.settings.IS)]);
             end
             
@@ -909,11 +847,8 @@ classdef ctmrGUI < handle
             end
             
             %log
-            str = get(obj.controls.txtLog, 'string');
-            if length(str)>=obj.settings.NUM_LINES
-                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-            end
-            set(obj.controls.txtLog, 'string',{str{:},['> ' obj.settings.Method ' selected.']});
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ' obj.settings.Method ' selected.']});
             loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Method ' selected.']);
             
         end
@@ -924,11 +859,8 @@ classdef ctmrGUI < handle
             obj.settings.Hemisphere = callbackdata.NewValue.String;
             
             %log
-            str = get(obj.controls.txtLog, 'string');
-            if length(str)>=obj.settings.NUM_LINES
-                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-            end
-            set(obj.controls.txtLog, 'string',{str{:},['> ' obj.settings.Hemisphere ' hemisphere selected.']});
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ' obj.settings.Hemisphere ' hemisphere selected.']});
             loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Hemisphere ' hemisphere selected.']);
             
         end
@@ -945,11 +877,8 @@ classdef ctmrGUI < handle
             if isempty(auxGrid)
                 disp('! WARNING: Please enter the settings.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Please enter the settings.'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please enter the settings.'});
                 loggingActions(obj.settings.currdir,3,' >! WARNING: Please enter the settings.');
                 
             else
@@ -962,11 +891,8 @@ classdef ctmrGUI < handle
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{end}]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{end}]});
                 loggingActions(obj.settings.currdir,3,[' > Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{end}]);
             end
             
@@ -984,21 +910,15 @@ classdef ctmrGUI < handle
                     set(obj.controls.btnRemoveGrid, 'enable', 'off');
                     obj.settings.Grids = obj.settings.Grids(1:end-1);
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> All grid settings have been removed.']});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> All grid settings have been removed.']});
                     loggingActions(obj.settings.currdir,3,[' > All grid settings have been removed.']);
                     
                 else
                     obj.settings.Grids = obj.settings.Grids(1:end-1);
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
                     loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
                 end
                 
@@ -1015,11 +935,8 @@ classdef ctmrGUI < handle
             %if no FS
             if ~isfield(obj.settings, 'FS')
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: Please load a FreeSurfer segmentation!'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please load a FreeSurfer segmentation!'});
                 loggingActions(obj.settings.currdir,3,' >! WARNING: Please load a FreeSurfer segmentation!');
                 return;
             end
@@ -1031,25 +948,19 @@ classdef ctmrGUI < handle
                 obj.settings.subject = ' ';
                 disp('>! WARNING: No name entered.');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},'>! WARNING: No name entered. Try again!'});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: No name entered. Try again!'});
                 loggingActions(obj.settings.currdir,3,' >! WARNING: No name entered. Try again!');
                 status = 0;
                 return;
-            
+                
             else
                 obj.settings.subject = subject;
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Name entered: ' subject]});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Name entered: ' subject]});
                 loggingActions(obj.settings.currdir,3, [ ' > Name entered: ' subject]);
             end
             
@@ -1057,11 +968,8 @@ classdef ctmrGUI < handle
                 
                 disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
                 loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 pause(1);
                 
@@ -1070,11 +978,8 @@ classdef ctmrGUI < handle
                 if status==1
                     disp('> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},'> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.'});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.'});
                     loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
                     
                 end
@@ -1083,11 +988,8 @@ classdef ctmrGUI < handle
                 
                 disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 %log
-                str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
-                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                end
-                set(obj.controls.txtLog, 'string',{str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
                 loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 pause(1);
                 
@@ -1096,11 +998,8 @@ classdef ctmrGUI < handle
                 if status==1
                     disp('> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
                     %log
-                    str = get(obj.controls.txtLog, 'string');
-                    if length(str)>=obj.settings.NUM_LINES
-                        str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-                    end
-                    set(obj.controls.txtLog, 'string',{str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
                     loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
                     
                 end
@@ -1108,7 +1007,6 @@ classdef ctmrGUI < handle
             end
             
         end
-        
         
     end
 end

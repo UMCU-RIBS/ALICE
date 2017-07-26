@@ -8,9 +8,12 @@
 # IsoSurface -isorois+dsets -mergerois+dset -autocrop -o_gii 3dclusters.gii -input 3dclusters_r?_is?.nii
 
 set PIF = DriveAfniElectrodes    #A string identifying programs launched by this script
+@Quiet_Talkers -pif $PIF   #Quiet previously launched programs
 
                            #Get a free line and tag programs from this script
 set NPB = "-npb `afni -available_npb_quiet` -pif $PIF -echo_edu" 
+echo $NPB > ecognpb.txt
+
 set surfcoords = "surf_xyz.1D"  # record the electrode positions in a text file - this one gets the position at the surface
 #set surfcoords_i = "surf_ixyz.1D"  # record the electrode positions in a text file - this one gets the position at surface with index
 set sumasurf = lastsurfout.txt 
@@ -18,7 +21,6 @@ set ct = "CT+orig"
 set clust_surf = "3dclusters.gii"
 set clustset = ''
 
-@Quiet_Talkers -pif $PIF   #Quiet previously launched programs
 
 set cnt = 1
 while ($cnt < $#argv)
@@ -141,6 +143,3 @@ sleep 2
       DriveSuma $NPB -com surf_cont -switch_cmap tempcmap -Dim 0.6 \
                      -switch_cmode Dir -1_only Y
 ####### END new code for el cluster shading v2.0 (MPBranco 300617)###########################
-
-
-echo $NPB > ecognpb.txt
