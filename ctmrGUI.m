@@ -313,7 +313,11 @@ classdef ctmrGUI < handle
                     set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                     %log
                     LogInfo(obj, 2);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
+                    try
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
+                    catch
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',[obj.settings.MRI(1:end)]});
+                    end
                     loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
                 end
                 %FS
@@ -495,13 +499,14 @@ classdef ctmrGUI < handle
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Electrode clusters extracted. Please check results and then close SUMA.'});
                     loggingActions(obj.settings.currdir,2,' > Electrode cluster extracted. Please check results and then close SUMA.');
-                    system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
                     
                     %message box:
                     h = msgbox({['The electrode-clusters have been extracted,', ' please check the result in SUMA.'],...
                         ['After revision, close SUMA.'],[' '], ['To extract new clusters, select new settings and click ''Extract clusters''.'], ...
                         ['Otherwise, click ''Select Electrodes'' to continue.']},'Check electrode-clusters', 'help');
-                
+  
+                    system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
+
                 else
                     LogInfo(obj, 2);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is ','inside /data/CT folder.'});
@@ -641,7 +646,11 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                 %log
                 LogInfo(obj, 2);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
+                try
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
+                catch
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',[obj.settings.MRI(1:end)]});
+                end
                 loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
                 
             else
