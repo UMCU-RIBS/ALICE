@@ -780,9 +780,9 @@ classdef ctmrGUI < handle
             
             str = get(obj.controls.edtR, 'string');
             try
-                obj.settings.CV = str2num(str{1});
+                obj.settings.R = str2num(str{1});
             catch
-                obj.settings.CV = str2num(str);
+                obj.settings.R = str2num(str);
             end
             
             if isempty(obj.settings.R)
@@ -807,9 +807,9 @@ classdef ctmrGUI < handle
             
             str = get(obj.controls.edtIS, 'string');
             try
-                obj.settings.CV = str2num(str{1});
+                obj.settings.IS = str2num(str{1});
             catch
-                obj.settings.CV = str2num(str);
+                obj.settings.IS = str2num(str);
             end
             
             if isempty(obj.settings.IS)
