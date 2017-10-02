@@ -17,13 +17,13 @@ for els = 1 : ELS,
     [X, Y, Z] = sphere(40);
 
     %place the sphere into the spot:
-    R = 1.5; %sphere radius
+    R = 1.5; %sphere radius original 1.5, for GridLoc paper 0.6
     X = R * X + xe;
     Y = R * Y + ye;
     Z = R * Z + ze;
 
     hold on;
-    surf(X, Y, Z, 'FaceColor', color, 'EdgeColor', 'none');
+    surf(X, Y, Z, 'FaceColor', color, 'EdgeColor', 'none', 'FaceLighting', 'none'); 
 end
 
 hold off;

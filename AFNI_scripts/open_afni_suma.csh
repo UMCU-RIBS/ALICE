@@ -62,15 +62,23 @@ MakeColorMap -std ROI_i256 |tail -256 > roi256.1D
 # now create a proper SUMA compatible colormap by combining the two files
 #  index label RGBA
 @ nlabels --
-rm tempcmap.txt
+
+
+########### order cluster roi rgb colors version v5.0 (DGlen, MPBranco 021017) ###############
+rm tempcmap.txt tempcmap_unsort.txt
 foreach li (`count -digits 1 1 $nlabels`)
    set ind_label = `sed "${li}q;d" temp_labels.txt`
    set rgb = `sed "${li}q;d" roi256.1D`
    # put them all together (RGB are fractional values, Alpha=1)
    # index label R G B A
    # 1 electrode_1 0.1 0.4 0.02 1
-   echo $ind_label $rgb 1 >> tempcmap.txt
+   echo $ind_label $rgb 1 >> tempcmap_unsort.txt
 end
+
+# the input and result clusters are not necessarily in order, so sort them here
+sort -n tempcmap_unsort.txt > tempcmap.txt
+####### END of new code for cluster color order v5.0###########################
+
 
 # create a non-colored copy of the dataset - just nodes and cluster indices
 ConvertDset -overwrite -input $clust_niml_set -dset_labels 'R' -o temp_marked_clusters.1D
