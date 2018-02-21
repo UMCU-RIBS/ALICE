@@ -11,7 +11,7 @@ if fID == -1
     % create file if it doesn-t exist
     fID = fopen([currdir 'log_info/Step' num2str(stepNumber) '_log.txt'], 'a');
     % give it a title
-    fprintf(fID, '\nAction log of 3D-CTMR\n\n');
+    fprintf(fID, '\nAction log of ALICE\n\n');
     fprintf(fID, '---------------------------------------------------------\n\n');
 else
     fID = fopen([currdir 'log_info/Step' num2str(stepNumber) '_log.txt'], 'a');
