@@ -71,7 +71,7 @@ classdef ctmrGUI < handle
             %% Inside frame 1:
             % SubFrame 1 inside frame 1
             obj.controls.subframe1 = uipanel( 'Parent', obj.controls.frame1, 'Units', 'pixels', 'Position', [10 360 293 100], ...
-                'Title', 'Select MRI scan', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
+                'Title', 'Select MRI scan from FS folder', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
             
             % SubFrame 2 inside frame 1
             obj.controls.subframe2 = uipanel( 'Parent', obj.controls.frame1, 'Units', 'pixels', 'Position', [10 240 293 100], ...
@@ -120,7 +120,7 @@ classdef ctmrGUI < handle
             
             % text box inside subframe 1
             obj.controls.txtMRI = uicontrol( 'Parent', obj.controls.subframe1, 'Style', 'edit', 'Position', [115 26 168 36], ...
-                'FontSize', 10, 'string', {' MRI scan (*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
+                'FontSize', 7, 'string', {' (.../FreeSurfer/mri/T1.mgz)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
             %% Inside subframe 2 - frame 1
             % Button 1 inside subframe 2
@@ -129,7 +129,7 @@ classdef ctmrGUI < handle
             
             % text box inside subframe 2
             obj.controls.txtFS= uicontrol( 'Parent', obj.controls.subframe2, 'Style', 'edit', 'Position', [115 26 168 36], ...
-                'FontSize', 10, 'string', {' FS ribbon (*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
+                'FontSize',7, 'string', {' (.../FreeSurfer/mri/ribbon.mgz)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
             
             %% Inside subframe 3 - frame 1
@@ -139,7 +139,7 @@ classdef ctmrGUI < handle
             
             % text box inside subframe 3
             obj.controls.txtCT1= uicontrol( 'Parent', obj.controls.subframe3, 'Style', 'edit', 'Position', [115 26 168 36], ...
-                'FontSize', 10, 'string', {' CT scan (*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
+                'FontSize', 7, 'string', {' (.../*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
             
             %% Inside subframe 4 - frame 2
@@ -149,7 +149,7 @@ classdef ctmrGUI < handle
             
             % text box inside subframe 4
             obj.controls.txtCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'edit', 'Position', [10 26 168+105 36], ...
-                'FontSize', 10, 'string', {' CT scan (*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
+                'FontSize',7, 'string', {' (.../*.nii)'} , 'HorizontalAlignment', 'left', 'BackgroundColor', 'w' ,'enable','inactive');
             
             %% Inside subframe 5 - frame 3
             %text box
@@ -311,6 +311,8 @@ classdef ctmrGUI < handle
                     obj.settings.MRI = [obj.settings.currdir 'data/MRI/' N];
                     obj.settings.loaded(1) = 1;
                     set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
+                    set(obj.controls.txtMRI, 'FontSize',10);
+                    
                     %log
                     LogInfo(obj, 2);
                     try
@@ -320,17 +322,20 @@ classdef ctmrGUI < handle
                     end
                     loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
                 end
+                
                 %FS
                 E = [obj.settings.currdir 'data/FreeSurfer/t1_class.nii'];
                 if exist(E)~=0
                     obj.settings.FS = [obj.settings.currdir 'data/FreeSurfer/t1_class.nii'];
                     obj.settings.loaded(2) = 1;
                     set(obj.controls.txtFS, 'string',['...' obj.settings.FS(end-18:end)]);
+                    set(obj.controls.txtFS, 'FontSize',10);
                     %log
                     LogInfo(obj, 2);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', obj.settings.FS});
                     loggingActions(obj.settings.currdir,1,[' > FS segmentation selected: ' obj.settings.FS]);
                 end
+                
                 %CT
                 E = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
                 if exist(E)~=0
@@ -338,6 +343,8 @@ classdef ctmrGUI < handle
                     obj.settings.loaded(3) = 1;
                     set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
                     set(obj.controls.txtCT2, 'string',['...' obj.settings.CT(end-34:end)]);
+                    set(obj.controls.txtCT1, 'FontSize',10);
+                    set(obj.controls.txtCT2, 'FontSize',10);
                     %log
                     LogInfo(obj, 2);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
@@ -634,16 +641,26 @@ classdef ctmrGUI < handle
                 end
             end
             
-            [FileName, PathName] = uigetfile('../*.nii');
+            [FileName, PathName] = uigetfile('../*.mgz;*.nii');
             
             if FileName~=0
+                %copy file to Alice folder
                 copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
+                
+                %if mgz --> convert to nii
+                if strcmpi(FileName(end-2:end), 'mgz')
+                    system(['mri_convert ' obj.settings.currdir 'data/MRI/' FileName ' ' obj.settings.currdir 'data/MRI/T1.nii']);
+                    FileName = 'T1.nii';
+                end
+                
                 obj.settings.MRI = [obj.settings.currdir 'data/MRI/' FileName];
                 obj.settings.loaded(1) = 1;
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
+                set(obj.controls.txtMRI, 'FontSize',10);
+                
                 %log
                 LogInfo(obj, 2);
                 try
@@ -667,16 +684,27 @@ classdef ctmrGUI < handle
             
             cd(obj.settings.currdir);
             
-            [FileName, PathName] = uigetfile('../*.nii');
+            [FileName, PathName] = uigetfile('../*.mgz;*.nii');
+            
             if FileName~=0
-                %rename FS ribbon to t1_class.nii
-                copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
+                              
+                %Copy file to Alice folder
+                copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/' FileName]);
+                
+                %if mgz --> convert to nii
+                if strcmpi(FileName(end-2:end), 'mgz')
+                    system(['mri_convert ' obj.settings.currdir 'data/FreeSurfer/' FileName ' ' obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
+                    FileName = 't1_class.nii';
+                end
+                
                 obj.settings.FS = [obj.settings.currdir 'data/FreeSurfer/t1_class.nii'];
                 obj.settings.loaded(2) = 1;
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 set(obj.controls.txtFS, 'string', ['...' obj.settings.FS(end-18:end)]);
+                set(obj.controls.txtFS, 'FontSize',10);
+                
                 %log
                 LogInfo(obj, 2);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', obj.settings.FS});
