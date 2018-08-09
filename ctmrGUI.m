@@ -241,7 +241,7 @@ classdef ctmrGUI < handle
         function CreateDirectory( obj )
             
             obj.settings.originaldir = [pwd '/'];
-            obj.settings.scripspath  = [fileparts( mfilename('fullpath') ) '/'];
+            obj.settings.scriptspath  = [fileparts( mfilename('fullpath') ) '/'];
             
             if exist([pwd '/ALICE'])==7
                 errordlg('A folder named ALICE already exists. Please choose another directory or rename the existing folder.');
@@ -267,14 +267,14 @@ classdef ctmrGUI < handle
                 mkdir('FreeSurfer');
                 cd(obj.settings.currdir);
                 %locate matlab scripts
-                addpath(genpath([ obj.settings.scripspath 'MATLAB_scripts']));
+                addpath(genpath([ obj.settings.scriptspath 'MATLAB_scripts']));
                 %locate afni scripts
                 cd(obj.settings.currdir);
-                copyfile([obj.settings.scripspath 'AFNI_scripts' '/alignCTtoT1_shft_res.csh'], [obj.settings.currdir 'data/coregistration/']);
-                copyfile([obj.settings.scripspath 'AFNI_scripts' '/3dclustering.csh'], [obj.settings.currdir 'data/3Dclustering/']);
-                copyfile([obj.settings.scripspath 'AFNI_scripts' '/select_electrode.csh'], [obj.settings.currdir 'data/3Dclustering/']);
-                copyfile([obj.settings.scripspath 'AFNI_scripts' '/open_afni_suma.csh'], [obj.settings.currdir 'data/3Dclustering/']);
-                copyfile([obj.settings.scripspath 'AFNI_scripts' '/indexify_electrodes.csh'], [obj.settings.currdir 'data/3Dclustering/']);
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/alignCTtoT1_shft_res.csh'], [obj.settings.currdir 'data/coregistration/']);
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/3dclustering.csh'], [obj.settings.currdir 'data/3Dclustering/']);
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/select_electrode.csh'], [obj.settings.currdir 'data/3Dclustering/']);
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/open_afni_suma.csh'], [obj.settings.currdir 'data/3Dclustering/']);
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/indexify_electrodes.csh'], [obj.settings.currdir 'data/3Dclustering/']);
                 
                 cd(obj.settings.currdir);
                 addpath(genpath(obj.settings.currdir));
@@ -303,13 +303,58 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ALICE directory located: ' obj.settings.currdir],'> Please proceed to Step 1.'});
                 loggingActions(obj.settings.currdir,1,[' > ALICE directory located: ' obj.settings.currdir]);
                 loggingActions(obj.settings.currdir,1,' > Please proceed to Step 1.');
+                
+                if exist([obj.settings.currdir '/log_info/settings.mat'])==2
+                        
+                    oldsettings  = load([obj.settings.currdir '/log_info/settings.mat']);
+                    obj.settings = oldsettings.settings;
+                    
+                    try
+                        set(obj.controls.edtCV, 'String',obj.settings.CV);
+                        set(obj.controls.edtR, 'String',obj.settings.R);
+                        set(obj.controls.edtIS, 'String',obj.settings.IS);
+                    end
+                    
+                    try
+                        set(obj.controls.edtSbjName, 'String',obj.settings.subject);
+                        if ~isempty(obj.settings.Grids)
+                            set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
+                            %log
+                            LogInfo(obj, 1);
+                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
+                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
+                        end
+                        if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
+                            set(obj.controls.radiobtn1,'Value', 1);
+                            set(obj.controls.radiobtn2,'Value', 0);
+                            set(obj.controls.edtGrid, 'Enable','on');
+                            set(obj.controls.btnAddGrid, 'Enable','on');
+                            set(obj.controls.btnRemoveGrid, 'Enable','on')
+                        else %if HD method
+                            set(obj.controls.radiobtn1,'Value', 0);
+                            set(obj.controls.radiobtn2,'Value', 1);
+                            set(obj.controls.edtGrid, 'Enable','off');
+                            set(obj.controls.btnAddGrid, 'Enable','off');
+                            set(obj.controls.btnRemoveGrid, 'Enable','off')
+                        end
+                        if strcmp(obj.settings.Hemisphere, 'Left')
+                            set(obj.controls.radiobtn3,'Value', 1);
+                            set(obj.controls.radiobtn4,'Value', 0);
+                        else
+                            set(obj.controls.radiobtn3,'Value', 0);
+                            set(obj.controls.radiobtn4,'Value', 1);
+                        end
+                    end
+                    
+                    %log
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
+                    loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
+                end
+                
                 %if files in folder then read them:
                 %MRI
-                E = dir([obj.settings.currdir 'data/MRI/']);
-                if size(E,1)>2
-                    N = E(3).name;
-                    obj.settings.MRI = [obj.settings.currdir 'data/MRI/' N];
-                    obj.settings.loaded(1) = 1;
+                if isfield(obj.settings, 'MRI') && ~isempty(obj.settings.MRI)
                     set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                     set(obj.controls.txtMRI, 'FontSize',10);
                     
@@ -350,63 +395,10 @@ classdef ctmrGUI < handle
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
                     loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 end
-                
-                if exist([obj.settings.currdir '/log_info/settings.mat'])==2
-                    
-                    load([obj.settings.currdir '/log_info/settings.mat']);
-                    try
-                        obj.settings.R = settings.R;
-                        obj.settings.CV = settings.CV;
-                        obj.settings.IS = settings.IS;
-                        set(obj.controls.edtCV, 'String',obj.settings.CV);
-                        set(obj.controls.edtR, 'String',obj.settings.R);
-                        set(obj.controls.edtIS, 'String',obj.settings.IS);
-                    end
-                    
-                    try
-                        obj.settings.subject = settings.subject;
-                        obj.settings.Grids = settings.Grids;
-                        obj.settings.Hemisphere = settings.Hemisphere;
-                        obj.settings.Method = settings.Method;
-                        set(obj.controls.edtSbjName, 'String',obj.settings.subject);
-                        if ~isempty(obj.settings.Grids)
-                            set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
-                            %log
-                            LogInfo(obj, 1);
-                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
-                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
-                        end
-                        if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
-                            set(obj.controls.radiobtn1,'Value', 1);
-                            set(obj.controls.radiobtn2,'Value', 0);
-                            set(obj.controls.edtGrid, 'Enable','on');
-                            set(obj.controls.btnAddGrid, 'Enable','on');
-                            set(obj.controls.btnRemoveGrid, 'Enable','on')
-                        else %if HD method
-                            set(obj.controls.radiobtn1,'Value', 0);
-                            set(obj.controls.radiobtn2,'Value', 1);
-                            set(obj.controls.edtGrid, 'Enable','off');
-                            set(obj.controls.btnAddGrid, 'Enable','off');
-                            set(obj.controls.btnRemoveGrid, 'Enable','off')
-                        end
-                        if strcmp(obj.settings.Hemisphere, 'Left')
-                            set(obj.controls.radiobtn3,'Value', 1);
-                            set(obj.controls.radiobtn4,'Value', 0);
-                        else
-                            set(obj.controls.radiobtn3,'Value', 0);
-                            set(obj.controls.radiobtn4,'Value', 1);
-                        end
-                    end
-                    
-                    %log
-                    LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
-                    loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
-                end
-                
+                            
                 addpath(genpath(obj.settings.currdir));
-                obj.settings.scripspath  = [fileparts( mfilename('fullpath') ) '/'];
-                addpath(genpath(obj.settings.scripspath));
+                obj.settings.scriptspath  = [fileparts( mfilename('fullpath') ) '/'];
+                addpath(genpath(obj.settings.scriptspath));
                 
             else %if no directory is selected
                 disp('! WARNING: No directory selected.');
@@ -439,10 +431,8 @@ classdef ctmrGUI < handle
                 copyfile('../CT/CT_highresRAI.nii','.');
                 
                 %select T1
-                cdT1_path = '../MRI/';
-                nameT1    = dir(cdT1_path);
-                nameT1    = nameT1(3).name;
-                T1_path   = [cdT1_path nameT1];
+                t1_name = dir(obj.settings.MRI);
+                T1_path = ['../MRI/' t1_name.name];
                 
                 %align:
                 system(['tcsh -x alignCTtoT1_shft_res.csh -CT_path CT_highresRAI.nii -T1_path ' T1_path]);
@@ -452,7 +442,7 @@ classdef ctmrGUI < handle
                 f = fopen('./data/coregistration/status.txt');
                 S = fscanf(f,'%s');
                 
-                if strcmp(S(end-20:end),'alignmentsuccessfully');
+                if strcmp(S(end-20:end),'alignmentsuccessfully')
                     
                     %log after
                     LogInfo(obj, 1);
@@ -644,8 +634,13 @@ classdef ctmrGUI < handle
             [FileName, PathName] = uigetfile('../*.mgz;*.nii');
             
             if FileName~=0
-                %copy file to Alice folder
-                copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
+                
+                %if the file was already in the folder but was not loaded
+                %before, then do not copy-paste, else copy-paste
+                if ~strcmpi(PathName,[obj.settings.currdir 'Data/MRI/'])
+                    %copy file to Alice folder
+                    copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
+                end
                 
                 %if mgz --> convert to nii
                 if strcmpi(FileName(end-2:end), 'mgz')
