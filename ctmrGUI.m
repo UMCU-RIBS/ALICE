@@ -740,6 +740,8 @@ classdef ctmrGUI < handle
                 %update text boxes
                 set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
                 set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-34:end)]);
+                set(obj.controls.txtCT1, 'FontSize',10);
+                set(obj.controls.txtCT2, 'FontSize',10);
                                 
                 %extract ct max value
                 system(['3dBrickStat -slow ' obj.settings.currdir '/data/CT/CT_highresRAI.nii > temp_ct_val.txt']);
