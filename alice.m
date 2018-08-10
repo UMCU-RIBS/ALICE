@@ -13,7 +13,7 @@ thisDirectory = pwd;
 
 disp('                                         ');
 disp('  ****** Welcome to ALICE ******          ');
-disp('         Version July 2017 '                 );
+disp('        Version August 2018 '                 );
 disp('   A UMCU and NIH collaboration. ')
 disp('                                         ');
 
