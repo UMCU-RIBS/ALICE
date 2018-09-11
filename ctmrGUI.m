@@ -182,10 +182,12 @@ classdef ctmrGUI < handle
             obj.controls.Methods = uibuttongroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', @obj.radiobtnSelectionMethod, 'Position', [0 0.66 1 0.5], 'Bordertype', 'none');
             
             obj.controls.radiobtn1 = uicontrol( obj.controls.Methods, 'Style', 'radiobutton', 'Position', [20 75 230 25], ...
-                'FontSize', 10, 'string', 'Method 1 (Hermes et al. 2010)' ,'HandleVisibility','off','Value', 1, 'HorizontalAlignment', 'left','enable','on');
+                'FontSize', 10, 'string', 'Method 1 (Hermes et al. 2010)' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn1.Value = 0;
             
             obj.controls.radiobtn2 = uicontrol( obj.controls.Methods, 'Style', 'radiobutton', 'Position', [20 50 230 25], ...
-                'FontSize', 10, 'string', 'Method HD' ,'HandleVisibility','off','Value', 0, 'HorizontalAlignment', 'left','enable','on');
+                'FontSize', 10, 'string', 'Method HD' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn2.Value = 0;
             
             %enter subject name:
             %text box
@@ -193,17 +195,19 @@ classdef ctmrGUI < handle
                 'FontSize', 10, 'string', {'Subject Name:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
             %edit text box
             obj.controls.edtSbjName =  uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'edit', 'Position', [130 224 155 25], ...
-                'FontSize', 10, 'string','NAME' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                'FontSize', 8, 'string','name...' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
             %select an hemisphere
             obj.controls.Hemisphere = uibuttongroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', @obj.radiobtnSelectionHemisphere,'Position', [0 0.33 1 0.33],'Bordertype', 'none');
             
             obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [160 75 230 25], ...
-                'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off','Value', 1, 'HorizontalAlignment', 'left','enable','on');
-            
+                'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+             obj.controls.radiobtn3.Value = 0;
+             
             obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [220 75 230 25], ...
-                'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off','Value', 0, 'HorizontalAlignment', 'left','enable','on');
-            
+                'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+             obj.controls.radiobtn4.Value = 0;
+             
             obj.controls.txtHemisphere = uicontrol( obj.controls.Hemisphere, 'Style', 'text', 'Position', [10 60 150 40], ...
                 'FontSize', 10, 'string', {'Implanted hemisphere:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
             
@@ -217,7 +221,7 @@ classdef ctmrGUI < handle
             
             %edit text box
             obj.controls.edtGrid = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'edit', 'Position', [10 80 273 36], ...
-                'FontSize', 10, 'string','C, [1 3:32], 4, 8' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                'FontSize', 10, 'string','e.g.: C, [1 3:32], 4, 8' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
             % Button 1 inside subframe 2
             obj.controls.btnAddGrid = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'pushbutton', 'Position', [10 25 110 40], ...
@@ -305,7 +309,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,1,' > Please proceed to Step 1.');
                 
                 if exist([obj.settings.currdir '/log_info/settings.mat'])==2
-                        
+                    
                     oldsettings  = load([obj.settings.currdir '/log_info/settings.mat']);
                     obj.settings = oldsettings.settings;
                     
@@ -395,7 +399,7 @@ classdef ctmrGUI < handle
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
                     loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 end
-                            
+                
                 addpath(genpath(obj.settings.currdir));
                 obj.settings.scriptspath  = [fileparts( mfilename('fullpath') ) '/'];
                 addpath(genpath(obj.settings.scriptspath));
@@ -501,9 +505,9 @@ classdef ctmrGUI < handle
                     h = msgbox({['The electrode-clusters have been extracted,', ' please check the result in SUMA.'],...
                         ['After revision, close SUMA.'],[' '], ['To extract new clusters, select new settings and click ''Extract clusters''.'], ...
                         ['Otherwise, click ''Select Electrodes'' to continue.']},'Check electrode-clusters', 'help');
-  
+                    
                     system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
-
+                    
                 else
                     LogInfo(obj, 2);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is ','inside /data/CT folder.'});
@@ -682,9 +686,13 @@ classdef ctmrGUI < handle
             [FileName, PathName] = uigetfile('../*.mgz;*.nii');
             
             if FileName~=0
-                              
-                %Copy file to Alice folder
-                copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/' FileName]);
+                
+                %if the file was already in the folder but was not loaded
+                %before, then do not copy-paste, else copy-paste
+                if ~strcmpi(PathName,[obj.settings.currdir 'Data/FreeSurfer/'])
+                    %Copy file to Alice folder
+                    copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
+                end
                 
                 %if mgz --> convert to nii
                 if strcmpi(FileName(end-2:end), 'mgz')
@@ -721,8 +729,13 @@ classdef ctmrGUI < handle
             [FileName, PathName] = uigetfile('../*.nii');
             if FileName~=0
                 
-                %rename CT to CT_highresRAI.nii
-                copyfile([PathName FileName], [obj.settings.currdir 'data/CT/CT_highresRAI.nii']);
+                %if the file was already in the folder but was not loaded
+                %before, then do not copy-paste, else copy-paste
+                if ~strcmpi(PathName,[obj.settings.currdir 'Data/CT/'])
+                    %rename CT to CT_highresRAI.nii
+                    copyfile([PathName FileName], [obj.settings.currdir 'data/CT/CT_highresRAI.nii']);
+                end
+                
                 obj.settings.CT = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
                 obj.settings.loaded(3) = 1;
                 
@@ -731,13 +744,13 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
                 loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 loggingActions(obj.settings.currdir,2,[' > CT scan selected: ' obj.settings.CT]);
-               
+                
                 %update text boxes
                 set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
                 set(obj.controls.txtCT2, 'string', ['...' obj.settings.CT(end-34:end)]);
                 set(obj.controls.txtCT1, 'FontSize',10);
                 set(obj.controls.txtCT2, 'FontSize',10);
-                                
+                
                 %extract ct max value
                 system(['3dBrickStat -slow ' obj.settings.currdir '/data/CT/CT_highresRAI.nii > temp_ct_val.txt']);
                 Faux = fopen('temp_ct_val.txt');
@@ -749,7 +762,7 @@ classdef ctmrGUI < handle
                 %save settings
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
-                                
+                
                 %log CV
                 LogInfo(obj, 1);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Electrode maximum intensity selected: ' num2str(obj.settings.CV)]});
@@ -984,14 +997,13 @@ classdef ctmrGUI < handle
             subject = get(obj.controls.edtSbjName, 'String');
             
             %if subject name is empty
-            if isempty(subject) || strcmp(subject,'')
+            if isempty(subject) || strcmp(subject,'') || strcmp(subject, 'name...')
                 obj.settings.subject = ' ';
                 disp('>! WARNING: No name entered.');
                 %log
                 LogInfo(obj, 1);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: No name entered. Try again!'});
                 loggingActions(obj.settings.currdir,3,' >! WARNING: No name entered. Try again!');
-                status = 0;
                 return;
                 
             else
@@ -1004,6 +1016,21 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,3, [ ' > Name entered: ' subject]);
             end
             
+            %check if grid settings were well inputted
+            for g=1:size(obj.settings.Grids,2)
+                grid = obj.settings.Grids{g};
+                comas = strfind(grid,',');
+                if ~contains(grid(comas(1)+1:comas(2)-1), ':')
+                    disp(['>! WARNING: Please define electrode order with [ ] and : symbols, e.g. [1:32]. ']);
+                    %log
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['>! WARNING: Please define electrode order with [ ] and : symbols, e.g., [1:32]. ']});
+                    loggingActions(obj.settings.currdir,3,[' >! WARNING: Please define electrode order with [ ] and : symbols, e.g. [1:32]. ']);
+                    return;
+                end
+            end
+            
+            %apply method
             if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
                 
                 disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);

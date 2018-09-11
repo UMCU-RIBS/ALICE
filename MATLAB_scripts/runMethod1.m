@@ -38,6 +38,10 @@ subject = obj.settings.subject;
 %remove old files
 system(['rm ./results/' subject '*']);
 system(['rm ./results/CM*']);
+try
+    system(['rm ./results/projected_electrodes_coord/' subject '*']);
+end
+
 
 %% 1.1) generate surface to project electrodes to
 hemisphere = obj.settings.Hemisphere;
@@ -145,6 +149,7 @@ save([mypath 'CM_electrodes_sorted_all_aligned.mat'],'elecmatrix');
 system(['rm ./results/' subject '_singleGrid*']);
 
 load([mypath 'CM_electrodes_sorted_all_aligned.mat']);
+elecmatrix = elecmatrix*0;
 
 % electrodes2surf(subject,localnorm index,do not project electrodes closer than 3 mm to surface)
 
@@ -216,6 +221,15 @@ for g=1:size(obj.settings.Grids,2)
     elecmatrix(gridEls,:) = out_els;
     
 end
+
+%convert zero coordinates to nans:
+[~, index] = ismember(elecmatrix, [0 0 0], 'rows');
+if ~isempty(index)
+    elecmatrix(logical(index),:) = nan;
+end
+%and remove all nans after last electrode:
+elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:end,:) = [];
+
 %save as subject_singleGrid_projectedElectrodes_FreeSurfer_X_parm1_parm2,
 %where X is the number of the generated file (1 for the first file with
 %parameters X, Y and 2 for second file with same parameters),

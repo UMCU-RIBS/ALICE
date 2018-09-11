@@ -21,7 +21,7 @@ classdef selectElGUI < handle
             windowPosition2 = [ round((screenSize(3)-width)), screenSize(4)-height-100, 250, 320];
             
             obj.extraFig = figure( 'Name', 'Select electrodes','OuterPosition', windowPosition2, 'Menu', 'none', ...
-                'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest );
+                'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest);
             
             %button 1: select electrode
             obj.controls.btnSelectEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 190 150 50], ...
@@ -56,8 +56,8 @@ classdef selectElGUI < handle
         function figCloseRequest( obj, hObject, ~ )
             delete( hObject );
         end
-        
-         %Select one electrode
+                
+        %Select one electrode
         function btnSelectEl( obj, hObject, ~ )
             
             %for just return, advance to next entry
