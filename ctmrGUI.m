@@ -966,6 +966,7 @@ classdef ctmrGUI < handle
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> All grid settings have been removed.']});
                     loggingActions(obj.settings.currdir,3,[' > All grid settings have been removed.']);
+                    set(obj.controls.edtGrid, 'string', ' ');
                     
                 else
                     obj.settings.Grids = obj.settings.Grids(1:end-1);
