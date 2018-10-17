@@ -696,7 +696,7 @@ classdef ctmrGUI < handle
                 
                 %if mgz --> convert to nii
                 if strcmpi(FileName(end-2:end), 'mgz')
-                    system(['mri_convert ' obj.settings.currdir 'data/FreeSurfer/' FileName ' ' obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
+                    system(['mri_convert ' PathName FileName ' ' obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
                     FileName = 't1_class.nii';
                 end
                 
