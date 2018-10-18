@@ -288,5 +288,5 @@ el_add(elecmatrix,'r',20);
 label_add(elecmatrix)
 loc_view(display_view(1), display_view(2));
 
-
+saveas(gcf,[subject '.png']);
 
