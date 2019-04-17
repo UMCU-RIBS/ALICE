@@ -18,32 +18,35 @@ classdef selectElGUI < handle
             screenSize = get(0,'ScreenSize');
             width		= 500;
             height		= 950;
-            windowPosition2 = [ round((screenSize(3)-width)), screenSize(4)-height-100, 250, 320];
+            windowPosition2 = [ round((screenSize(3)-width)), screenSize(4)-height-100, 250, 420];
             
             obj.extraFig = figure( 'Name', 'Select electrodes','OuterPosition', windowPosition2, 'Menu', 'none', ...
                 'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest);
             
             %button 1: select electrode
-            obj.controls.btnSelectEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 190 150 50], ...
+            obj.controls.btnSelectEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 290 150 50], ...
                 'String', 'Select electrode', 'Callback', @obj.btnSelectEl, 'FontSize', 11 , 'FontWeight', 'bold');
             %button 2: select sphere
-            obj.controls.btnSelectSphere = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 130 150 50 ], ...
+            obj.controls.btnSelectSphere = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 230 150 50 ], ...
                 'String', 'Set sphere', 'Callback', @obj.btnSelectSphere, 'FontSize', 11 , 'FontWeight', 'bold');
             %edit box: goto electrode
-            obj.controls.edtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'edit', 'Position', [125 85 60 30], ...
+            obj.controls.edtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'edit', 'Position', [125 185 60 30], ...
                 'FontSize', 11, 'string', {' '} ,'Callback', @obj.edtGotoEl,  'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             %text box goto electrode
-            obj.controls.txtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [30 57 90 60], ...
+            obj.controls.txtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [30 157 90 60], ...
                 'FontSize', 11, 'string', {'Go to electrode:'} , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
             %button goto electrode
-            obj.controls.btnGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [190 85 30 30 ], ...
+            obj.controls.btnGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [190 185 30 30 ], ...
                 'String', '>>','Callback', @obj.edtGotoEl, 'FontSize', 11 , 'FontWeight', 'bold');
             %text current electrode
-            obj.controls.txtCurrentEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [20 245 210 30], ...
+            obj.controls.txtCurrentEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [22 345 210 30], ...
                 'FontSize', 13, 'string', {'Select electrode: 1'} , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
+            %button delete cluster
+            obj.controls.btnDeleteCluster = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 110 150 50 ], ...
+                'String', 'Delete Cluster', 'Callback', @obj.btnDeleteCluster, 'FontSize', 11 , 'FontWeight', 'bold', 'ForegroundColor', [0.7 0 0]);
             %button 3: quit
-            obj.controls.btnQuit = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 10 150 50 ], ...
-                'String', 'Finished!', 'Callback', @obj.btnQuit, 'FontSize', 18 , 'FontWeight', 'bold', 'ForegroundColor', [0.5 0 0]);
+            obj.controls.btnQuit = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 30 150 50 ], ...
+                'String', 'Finished!', 'Callback', @obj.btnQuit, 'FontSize', 18 , 'FontWeight', 'bold', 'ForegroundColor', [0 0.6 0]);
                     
         end
          
@@ -74,6 +77,21 @@ classdef selectElGUI < handle
             end
             set(obj.controls.txtLog, 'string',{str{:}, ['> Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']});
             loggingActions(obj.settings.currdir,2,[' > Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']);
+            
+        end
+        
+        %Select one electrode
+        function btnDeleteCluster( obj, hObject, ~ )
+            
+            %for just return, advance to next entry
+            system(['tcsh delete_cluster.csh']);
+                        
+            str = get(obj.controls.txtLog, 'string');
+            if length(str)>=obj.settings.NUM_LINES
+                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+            end
+            set(obj.controls.txtLog, 'string',{str{:}, ['> Cluster deleted...']});
+            loggingActions(obj.settings.currdir,2,[' > Cluster deleted...']);
             
         end
         
