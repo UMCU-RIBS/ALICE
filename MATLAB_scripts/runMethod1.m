@@ -47,8 +47,10 @@ end
 hemisphere = obj.settings.Hemisphere;
 if strcmp(hemisphere, 'Left')
     hemi = 'l';
-else
+elseif strcmp(hemisphere, 'Right')
     hemi = 'r';
+else
+    hemi = 'l_r';
 end
 
 if exist(['./results/' subject '_balloon_11_03.img'])==0
@@ -80,22 +82,8 @@ elecCoord = [-CM(:,1:2) CM(:,3)];
 elecNum    = CM(:,4);
 
 %check for empty rows and put NANs
-elecmatrix = zeros(elecNum(end),3); % create empty array 
-auxk = 2;
-
-elecmatrix(1,:) = elecCoord(1,:);
-for k=2:length(elecNum)
-    
-    if elecNum(k)-elecNum(k-1)~= 1
-        elecmatrix(elecNum(k-1)+1:elecNum(k)-1,:) = nan;
-        auxk = elecNum(k);
-        elecmatrix(auxk,:) = elecCoord(k,:);
-        auxk = auxk+1;
-    else
-        elecmatrix(auxk,:) = elecCoord(k,:);
-        auxk = auxk +1;
-    end
-end
+elecmatrix = nan(elecNum(end),3); % create empty array 
+elecmatrix(elecNum, :) = elecCoord;
 
 save([mypath 'CM_electrodes_sorted_all.mat'],'elecmatrix');
 
