@@ -185,30 +185,34 @@ classdef ctmrGUI < handle
                 'FontSize', 10, 'string', 'Method 1 (Hermes et al. 2010)' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
             obj.controls.radiobtn1.Value = 0;
             
-            obj.controls.radiobtn2 = uicontrol( obj.controls.Methods, 'Style', 'radiobutton', 'Position', [20 50 230 25], ...
+            obj.controls.radiobtn2 = uicontrol( obj.controls.Methods, 'Style', 'radiobutton', 'Position', [20 55 230 25], ...
                 'FontSize', 10, 'string', 'Method HD' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
             obj.controls.radiobtn2.Value = 0;
             
+            obj.controls.radiobtn5 = uicontrol( obj.controls.Methods, 'Style', 'radiobutton', 'Position', [20 35 230 25], ...
+                'FontSize', 10, 'string', 'Method sEEG' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn5.Value = 0;
+            
             %enter subject name:
             %text box
-            obj.controls.txtSbjName = uicontrol( obj.controls.subframe6, 'Style', 'text', 'Position', [10 205 150 40], ...
+            obj.controls.txtSbjName = uicontrol( obj.controls.subframe6, 'Style', 'text', 'Position', [10 205-10 150 40], ...
                 'FontSize', 10, 'string', {'Subject Name:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
             %edit text box
-            obj.controls.edtSbjName =  uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'edit', 'Position', [130 224 155 25], ...
+            obj.controls.edtSbjName =  uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'edit', 'Position', [130 224-10 155 25], ...
                 'FontSize', 8, 'string','name...' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
             %select an hemisphere
             obj.controls.Hemisphere = uibuttongroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', @obj.radiobtnSelectionHemisphere,'Position', [0 0.33 1 0.33],'Bordertype', 'none');
             
-            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [160 75 230 25], ...
+            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [160 75-5 230 25], ...
                 'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
              obj.controls.radiobtn3.Value = 0;
              
-            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [220 75 230 25], ...
+            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [220 75-5 230 25], ...
                 'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
              obj.controls.radiobtn4.Value = 0;
              
-            obj.controls.txtHemisphere = uicontrol( obj.controls.Hemisphere, 'Style', 'text', 'Position', [10 60 150 40], ...
+            obj.controls.txtHemisphere = uicontrol( obj.controls.Hemisphere, 'Style', 'text', 'Position', [10 60-5 150 40], ...
                 'FontSize', 10, 'string', {'Implanted hemisphere:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
             
             %set grid settings:
@@ -279,7 +283,8 @@ classdef ctmrGUI < handle
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/select_electrode.csh'], [obj.settings.currdir 'data/3Dclustering/']);
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/open_afni_suma.csh'], [obj.settings.currdir 'data/3Dclustering/']);
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/indexify_electrodes.csh'], [obj.settings.currdir 'data/3Dclustering/']);
-                
+                copyfile([obj.settings.scriptspath 'AFNI_scripts' '/delete_cluster.csh'], [obj.settings.currdir 'data/3Dclustering/']);
+
                 cd(obj.settings.currdir);
                 addpath(genpath(obj.settings.currdir));
                 %log
@@ -868,7 +873,7 @@ classdef ctmrGUI < handle
             
         end
         
-        %Select electrodes
+        %Extract electrodes
         function btnExtractClusters( obj, hObject, ~ )
             
             obj.ExtractClusters;
