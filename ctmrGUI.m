@@ -262,6 +262,7 @@ classdef ctmrGUI < handle
                 
                 %create directories
                 mkdir('ALICE');
+                system('chmod g+w ALICE -R');
                 cd ./ALICE;
                 obj.settings.currdir = [pwd '/'];
                 mkdir('log_info');
@@ -892,16 +893,37 @@ classdef ctmrGUI < handle
             
             obj.settings.Method = callbackdata.NewValue.String;
             
-            if strcmp(obj.settings.Method,'Method HD')
+            if strcmp(obj.settings.Method,'Method 1 (Hermes et al. 2010)')
+                %enable grid settings
+                set(obj.controls.radiobtn3, 'Value',0);
+                set(obj.controls.radiobtn3, 'Enable','on');
+                set(obj.controls.radiobtn4, 'Value',0);
+                set(obj.controls.radiobtn4, 'Enable','on');
+                set(obj.controls.edtGrid, 'Enable','on');
+                set(obj.controls.btnAddGrid, 'Enable','on');
+                set(obj.controls.btnRemoveGrid, 'Enable','on');
+                
+            elseif strcmp(obj.settings.Method,'Method HD')
                 %disable grid settings
                 set(obj.controls.edtGrid, 'Enable','off');
                 set(obj.controls.btnAddGrid, 'Enable','off');
                 set(obj.controls.btnRemoveGrid, 'Enable','off');
-            else
+                set(obj.controls.radiobtn3, 'Value',0);
+                set(obj.controls.radiobtn3, 'Enable','on');
+                set(obj.controls.radiobtn4, 'Value',0);
+                set(obj.controls.radiobtn4, 'Enable','on');
+                
+            elseif strcmp(obj.settings.Method,'Method sEEG')
                 %enable grid settings
+                set(obj.controls.radiobtn3, 'Value',0);
+                set(obj.controls.radiobtn3, 'Enable','off');
+                set(obj.controls.radiobtn4, 'Value',0);
+                set(obj.controls.radiobtn4, 'Enable','off');
                 set(obj.controls.edtGrid, 'Enable','on');
                 set(obj.controls.btnAddGrid, 'Enable','on');
                 set(obj.controls.btnRemoveGrid, 'Enable','on');
+                %show both hemipsheres:
+                obj.settings.Hemisphere = 'both';
             end
             
             %log
@@ -1070,6 +1092,26 @@ classdef ctmrGUI < handle
                 
                 if status==1
                     disp('> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
+                    %log
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
+                    loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
+                    
+                end
+                
+                elseif strcmp(obj.settings.Method, 'Method sEEG')
+                
+                disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
+                %log
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']});
+                loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
+                pause(1);
+                
+                status = runsEEG(obj);
+                
+                if status==1
+                    disp('> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
                     %log
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
