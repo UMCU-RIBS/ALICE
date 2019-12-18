@@ -19,7 +19,7 @@ function [status] = runMethod1(obj)
 
 %% NOTES;
 % This script uses freesurfer surface with electrode position extracted from 
-% high res CT 3dclusters (using ctmr scirpt from Dora).
+% high res CT 3dclusters (using ctmr script from Dora).
 
 
 %% set directory and paths:
@@ -42,27 +42,6 @@ try
     system(['rm ./results/projected_electrodes_coord/' subject '*']);
 end
 
-
-%% 1.1) generate surface to project electrodes to
-hemisphere = obj.settings.Hemisphere;
-if strcmp(hemisphere, 'Left')
-    hemi = 'l';
-elseif strcmp(hemisphere, 'Right')
-    hemi = 'r';
-elseif strcmp(hemisphere, 'both')
-    hemi = 'l_r';
-end
-
-if exist(['./results/' subject '_balloon_11_03.img'])==0
-    % if using freesurfer:
-    get_mask_from_FreeSurfer(subject,... % subject name
-        './data/FreeSurfer/t1_class.nii',... % freesurfer class file
-        './results/',... % where you want to safe the file
-        hemi,... % 'l' for left 'r' for right
-        11,0.3); % settings for smoothing and threshold
-    %Visualize the surface with afni or mricron
-    %saved as subject_balloon_11_03, where 11 and 0.3 are the chosen parameters.
-end
 
 %% 1.2) Convert DICOM to NIFTI + Coregistration + 3dClustering + electrode selection and sorting
 
@@ -130,11 +109,13 @@ end
 % plot3(elecmatrix(:,1),elecmatrix(:,2),elecmatrix(:,3),'.r','MarkerSize',20); legend('aligned');
 
 elecmatrix = coord_al_anatSPM(:,1:3);
-save([mypath '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix');
+save([mypath subject '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix');
 
 
 
 %% 5) generate cortex to render images:
+
+anatomy_path = './data/FreeSurfer/t1_class.nii';
 
 % from freesurfer: in mrdata/.../freesurfer/mri
 gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_L'],0.5,[15 3],'l',mypath);
@@ -144,11 +125,11 @@ save([mypath '/projected_electrodes_coord/' subject '_L_cortex.mat'],'cortex');
 
 % from freesurfer: in mrdata/.../freesurfer/mri
 gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_R'],0.5,[15 3],'r',mypath);
-% load cortex
+
+% save cortex
 load([mypath subject '_R_cortex.mat']);
 save([mypath '/projected_electrodes_coord/' subject '_R_cortex.mat'],'cortex');
 
-display_view = [90 0];
 
 %% 8) plot electrodes on surface
 
@@ -157,10 +138,26 @@ load([mypath subject '_projectedElectrodes_FreeSurfer_3dclust.mat']);
 % save final folder
 save([mypath '/projected_electrodes_coord/' subject '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix')
 
-ctmr_gauss_plot(cortex,[0 0 0],0);
+%load and merge hemispheres in one cortex structure
+L_cortex = load([mypath subject '_L_cortex.mat']);
+R_cortex = load([mypath subject '_R_cortex.mat']);
+clear cortex;
+cortex.vert = [R_cortex.cortex.vert; R_cortex.cortex.vert];
+cortex.tri = [R_cortex.cortex.tri; R_cortex.cortex.tri];
+
+ctmr_gauss_plot_seeg(L_cortex.cortex,R_cortex.cortex,[0 0 0],0);
+
 el_add(elecmatrix,'r',20);
-label_add(elecmatrix)
+label_add(elecmatrix);
+
+display_view = [90 0];
 loc_view(display_view(1), display_view(2));
+saveas(gcf,[subject '_right.png']);
 
-saveas(gcf,[subject '.png']);
+display_view = [-90 0];
+loc_view(display_view(1), display_view(2));
+saveas(gcf,[subject '_left.png']);
 
+display_view = [90 90];
+loc_view(display_view(1), display_view(2));
+saveas(gcf,[subject '_top.png']);

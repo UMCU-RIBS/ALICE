@@ -8,7 +8,7 @@ function [ ] = plotSpheres(electrodes, color)
 
 
 ELS = size(electrodes, 1);
-for els = 1 : ELS,    
+for els = 1 : ELS  
     %original electrode locations:
     xe = electrodes(els, 1);
     ye = electrodes(els, 2);
@@ -17,7 +17,7 @@ for els = 1 : ELS,
     [X, Y, Z] = sphere(40);
 
     %place the sphere into the spot:
-    R = 1.5; %sphere radius original 1.5, for GridLoc paper 0.6
+    R = 1.5; %sphere radius original 1.5
     X = R * X + xe;
     Y = R * Y + ye;
     Z = R * Z + ze;
