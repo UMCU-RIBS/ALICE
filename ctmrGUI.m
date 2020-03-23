@@ -82,8 +82,13 @@ classdef ctmrGUI < handle
                 'Title', 'Select CT scan', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
             
             % Button 1 inside frame 1
-            obj.controls.btnAlignCTtoMRI = uicontrol( 'Parent', obj.controls.frame1, 'Style', 'pushbutton', 'Position', [90 35 140 50], ...
+            obj.controls.btnAlignCTtoMRI = uicontrol( 'Parent', obj.controls.frame1, 'Style', 'pushbutton', 'Position', [10 35 140 50], ...
                 'String', 'Align CT to MRI', 'Callback', @obj.btnAlignCTtoMRI, 'FontSize', 9, 'FontWeight', 'bold' );
+            
+            
+            % Button 2 inside frame 1
+            obj.controls.btnAlreadyAligned = uicontrol( 'Parent', obj.controls.frame1, 'Style', 'pushbutton', 'Position', [163 35 140 50], ...
+                'String', 'CT already aligned', 'Callback', @obj.btnAlreadyAligned, 'FontSize', 9, 'FontWeight', 'bold' );
             
             %% Inside frame 2:
             % SubFrame 1 inside frame 2
@@ -482,6 +487,21 @@ classdef ctmrGUI < handle
             
         end
         
+        function AlreadyAligned( obj )
+            
+            %create 1D files with identity matrices
+            Tmatrix = [1 0 0 0 0 1 0 0 0 0 1 0];
+            fileID = fopen([obj.settings.currdir '/data/coregistration/CT_highresRAI_res_shft_al_mat.aff12.1D'],'w');
+            fwrite(fileID, num2str(Tmatrix));
+            fclose(fileID);
+            
+            Tmatrix2 = [1     0     0     0     0     1     0     0     0     0     1     0];
+            fileID = fopen([obj.settings.currdir '/data/coregistration/CT_highresRAI_shft.1D'],'w');
+            fwrite(fileID, num2str(Tmatrix2));
+            fclose(fileID);
+            
+        end
+        
         function ExtractClusters ( obj )
             
             cd(obj.settings.currdir);
@@ -788,6 +808,13 @@ classdef ctmrGUI < handle
         function btnAlignCTtoMRI( obj, hObject, ~ )
             
             obj.AlignCTtoMRI;
+            
+        end
+        
+        %Already aligned
+        function btnAlreadyAligned( obj, hObject, ~ )
+            
+            obj.AlreadyAligned;
             
         end
         
