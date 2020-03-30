@@ -618,14 +618,17 @@ classdef ctmrGUI < handle
             
             %set writing permissions to all files created with alice for
             %group.
-            listing = dir('**/*');
-            list = [{listing.folder}' {listing.name}'];
-            for k=1:length(list)
-                try
-                fileattrib([list{k,1} '/' list{k,2}],'+w','g');
+            L = dir('ALICE');
+            if ~isempty(L)
+                listing = dir('**/*');
+                list = [{listing.folder}' {listing.name}'];
+                for k=1:length(list)
+                    try
+                        fileattrib([list{k,1} '/' list{k,2}],'+w','g');
+                    end
                 end
             end
-           
+            
             delete( hObject );
             clc;
             disp('     ___    ');
