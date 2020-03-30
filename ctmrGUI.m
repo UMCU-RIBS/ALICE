@@ -266,8 +266,8 @@ classdef ctmrGUI < handle
                 set(obj.controls.frame3,'Visible', 'on');
                 
                 %create directories
-                mkdir('ALICE');
-                system('chmod g+w ALICE -R');
+                mkdir('ALICE'); 
+                fileattrib ./ALICE +w g
                 cd ./ALICE;
                 obj.settings.currdir = [pwd '/'];
                 mkdir('log_info');
@@ -615,6 +615,17 @@ classdef ctmrGUI < handle
         
         % Close request function for the main dialog.
         function figCloseRequest( obj, hObject, ~ )
+            
+            %set writing permissions to all files created with alice for
+            %group.
+            listing = dir('**/*');
+            list = [{listing.folder}' {listing.name}'];
+            for k=1:length(list)
+                try
+                fileattrib([list{k,1} '/' list{k,2}],'+w','g');
+                end
+            end
+           
             delete( hObject );
             clc;
             disp('     ___    ');
