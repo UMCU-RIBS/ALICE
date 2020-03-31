@@ -46,7 +46,7 @@ classdef ctmrGUI < handle
             
             % Main window
             windowPosition = [ round((screenSize(3)-width)/5), screenSize(4)-height-100, width, height+80];
-            obj.mainFig = figure( 'Name', 'ALICE: Also Developed by a Cast of Thousands','OuterPosition', windowPosition, 'Menu', 'none', ...
+            obj.mainFig = figure( 'Name', 'ALICE','OuterPosition', windowPosition, 'Menu', 'none', ...
                 'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest );
             
             %two buttons for create directory or locate directory:
