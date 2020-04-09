@@ -1,4 +1,4 @@
-classdef ctmrGUI < handle 
+classdef ctmrGUI < handle   
     properties
         mainFig
         extraFig
