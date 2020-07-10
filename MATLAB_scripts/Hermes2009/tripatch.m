@@ -1,4 +1,4 @@
-function handle=tripatch(struct, nofigure, varargin)
+function handle=tripatch(struct, nofigure,facealpha, varargin)
 % TRIPATCH handle=tripatch(struct, nofigure)
 %
 % 
@@ -29,7 +29,7 @@ else
          col=repmat(col(:)', [size(struct.vert, 1) 1]);
       end% if
       handle=trisurf(struct.tri, struct.vert(:, 1), struct.vert(:, 2), struct.vert(:, 3), ...
-         'FaceVertexCData', col, varargin{:});
+         'FaceVertexCData', col,'FaceAlpha', facealpha, varargin{:});
       if length(col)==size(struct.vert, 1)
          set(handle, 'FaceColor', 'interp');
       end% if

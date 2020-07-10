@@ -152,8 +152,8 @@ classdef selectElGUI < handle
             if length(str)>=obj.settings.NUM_LINES
                 str = str( (end - (obj.settings.NUM_LINES-1)) :end);
             end
-            set(obj.controls.txtLog, 'string',{str{:}, '> Centers-of-masses extracted. Quitting program now...Please wait until AFNI and SUMA close.'});
-            loggingActions(obj.settings.currdir,2,' > Centers-of-masses extracted. Quitting program now...Please wait until AFNI and SUMA close.');
+            set(obj.controls.txtLog, 'string',{str{:}, '> Centers-of-mass extracted. Quitting program now...Please wait until AFNI and SUMA close.'});
+            loggingActions(obj.settings.currdir,2,' > Centers-of-mass extracted. Quitting program now...Please wait until AFNI and SUMA close.');
 
             delete( obj.extraFig );
             

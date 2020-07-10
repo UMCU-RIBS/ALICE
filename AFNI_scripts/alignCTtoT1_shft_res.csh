@@ -33,7 +33,7 @@ align_epi_anat.py -dset1 $t1 -dset2  CT_highresRAI_res_shft.nii -dset1_strip Non
 
 3dcopy $t1 ./temp_ANAT.nii
 
-afni -com "SWITCH_UNDERLAY temp_ANAT.nii" -com "SWITCH_OVERLAY CT_highresRAI_res_al.nii" 
+afni -com "SWITCH_UNDERLAY temp_ANAT.nii" -com "SWITCH_OVERLAY CT_highresRAI_res_al.nii" -niml -yesplugouts
 
 
 

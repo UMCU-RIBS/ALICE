@@ -1,7 +1,47 @@
    
     ALICE 
- version 6.4
+  version 7
 
-Date:   30 March 2020
-Author: MPBranco
-Place:  Utrecht
+Date:   07 July 2020
+Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
+Place:  UMC Utrecht
+
+--------- Info log: -----------------------------------------------------------
+
+[ v7 21-05-2020 ]
+
+
+_____Major updates_____________________________________________________________
+
++ added option to project in both hemispheres simultaneously.
++ added option to project in two hemispheres one after the other using new set of grids.
++ when projecting two hemisphere, results are combined in results folder and not deleted. 
+    --> several functions and files have now hemisphere on the name/input.
++ creates txt file in step 3 with coordinates and labels of electrodes for all methods.
+    --> only works for matlab version more recent than (and including) 2019a.
++ changed grid settings input in step 3: allows for (max) 3 layouts (using tabs) and to navigate between grids/tabs.
++ output directories changed, now: /results > method > hemisphere > intermidiate_results & /pictures/.
+
+
+
+____Minor updates______________________________________________________________
+
++ added checkbox for saving nifti files of projected electrodes.
+- removed single grid .*img files.
++ substitute img/hdr by .*nii files.
++ implemented facealpha as argument of ctmr_gauss_plot and subsequent functions.
++ added nifti output of projected electrodes for sEEG method.
++ added error when the located folder is not called ALICE.
++ cleaned up of electrodes clusters not in the grid specs.
++ allows choice of hemisphere and grid settings for HD method.
++ added waiting bar when plotting the brains and pause between saveas functions.
++ corrected the error when locating directory of copied folder. now opens in new directory.
+- removed value 9 from help message dialog displayed after CT is aligned to MRI. 
++ added -niml -yesplugouts to afni call in alignCTtoT1_shft_res.csh
+- removed Settings structure from alice.m.
++ enlarged width of main window by 10 points.
+- remove computation of balloon for HD method (not required).
++ save settings.mat after runing the projection methods and after each layout.
+
+
+

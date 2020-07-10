@@ -20,10 +20,11 @@ function cortex=gen_cortex_click_from_FreeSurfer(FS,subject,isoparm,sm_parm,l_r,
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-if exist('isoparm')~=1, isoparm=.65; %value of desired isosurface after smoothing
+if exist('isoparm')~=1 
+    isoparm=.65; %value of desired isosurface after smoothing
 end
-if exist('sm_par')~=1,
-sm_par=2; %smoothing parameter for rendering gray (dim of lattice)
+if exist('sm_par')~=1
+    sm_par=2; %smoothing parameter for rendering gray (dim of lattice)
 end
 %load grey
 % [data.gName]=spm_select(1,'image','select freesurfer segmentation (ribbon.mgz->t1_class.nii)');
@@ -31,14 +32,16 @@ end
 
 brain_info=spm_vol(data.gName); [g]=spm_read_vols(brain_info);
 
-if isequal(l_r,'r')
+if strcmpi(l_r,'r')
     % select right brain:
     g(g==2)=0; 
     g(g==3)=0; 
-elseif isequal(l_r,'l') % select left brain:
+    
+elseif strcmpi(l_r,'l') % select left brain:
     g(g==41)=0; 
     g(g==42)=0; 
 end
+
 g(g>0)=1;
 
 %combined grey and white "enclosed points" for later removal

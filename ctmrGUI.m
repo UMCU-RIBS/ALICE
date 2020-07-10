@@ -1,9 +1,10 @@
-classdef ctmrGUI < handle   
+classdef ctmrGUI < handle
     properties
         mainFig
         extraFig
         controls
         settings
+        alice_version
     end
     
     
@@ -11,9 +12,11 @@ classdef ctmrGUI < handle
         
         function obj = ctmrGUI
             % Create main window.
-            width		= 1000;
+            width		= 1010; %increase
             height		= 750;
             frameheight = 200;
+            
+            obj.alice_version = 6.5;
             
             %number lines in action log.
             obj.settings.NUM_LINES = 9;
@@ -26,23 +29,32 @@ classdef ctmrGUI < handle
             obj.settings.R  = 3;
             obj.settings.IS = 1;
             
-            %default hemisphere:
-            obj.settings.Hemisphere = 'Left';
+            %mepty hemisphere:
+            obj.settings.Hemisphere = [];
             
-            %default method:
-            obj.settings.Method = 'Method 1 (Hermes et al. 2010)';
+            %empty method:
+            obj.settings.Method = [];
             
-            %empty grid settings:
-            obj.settings.Grids = [];
+            %empty subject name:
+            obj.settings.subject = [];
+            
+            %empty lay9ut/grid settings:
+            obj.settings.Layout  = [];
+            obj.settings.Tabnum  = 1;
+            obj.settings.Grids   = [];
+            obj.settings.Gridnum = 0;
             
             %current numeber lines in action log
             obj.settings.curr_num_lines = 0;
+            
+            %by default do not save nii files
+            obj.settings.saveNii = 0;
             
             % Get screen size.
             screenSize = get(0,'ScreenSize');
             
             % Starting point of each frame.
-            startingPointFrame = [10 round(width/3)+10 2*round(width/3)+10];
+            startingPointFrame = [10 round(width/3)+5 2*round(width/3)];
             
             % Main window
             windowPosition = [ round((screenSize(3)-width)/5), screenSize(4)-height-100, width, height+80];
@@ -50,10 +62,10 @@ classdef ctmrGUI < handle
                 'NumberTitle', 'off', 'Color', get(0,'DefaultUIControlBackgroundColor'), 'Resize', 'off', 'CloseRequestFcn', @obj.figCloseRequest );
             
             %two buttons for create directory or locate directory:
-            obj.controls.btnCreateDirectory = uicontrol( 'Parent', obj.mainFig, 'Style', 'pushbutton', 'Position', [295 718+40 200 35], ...
+            obj.controls.btnCreateDirectory = uicontrol( 'Parent', obj.mainFig, 'Style', 'pushbutton', 'Position', [295 718+36 200 35], ...
                 'String', 'Create Directory', 'Callback', @obj.btnCreateDirectory, 'FontSize', 11 , 'FontWeight', 'bold');
             
-            obj.controls.btnLocateDirectory = uicontrol( 'Parent', obj.mainFig, 'Style', 'pushbutton', 'Position', [505 718+40 200 35], ...
+            obj.controls.btnLocateDirectory = uicontrol( 'Parent', obj.mainFig, 'Style', 'pushbutton', 'Position', [505 718+36 200 35], ...
                 'String', 'Locate Directory', 'Callback', @obj.btnLocateDirectory, 'FontSize', 11 , 'FontWeight', 'bold');
             
             %Frame 1
@@ -113,6 +125,10 @@ classdef ctmrGUI < handle
             obj.controls.subframe6 = uipanel( 'Parent', obj.controls.frame3, 'Units', 'pixels', 'Position', [10 120 293 340], ...
                 'Title', 'Select Projection Method', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
             
+            % Checkbox inside frame 3
+            obj.controls.checkBoxSaveNii = uicontrol( 'Parent', obj.controls.frame3, 'Style', 'checkbox', 'Position', [109 35+55 140 20], ...
+                'String', 'Save Nifti files', 'Callback', @obj.checkBoxSaveNii, 'FontSize', 8 , 'FontWeight', 'normal');
+            
             % Button 1 inside frame 3
             obj.controls.btnVisualize = uicontrol( 'Parent', obj.controls.frame3, 'Style', 'pushbutton', 'Position', [90 35 140 50], ...
                 'String', 'Visualize!', 'Callback', @obj.btnVisualize, 'FontSize', 9 , 'FontWeight', 'bold');
@@ -148,9 +164,6 @@ classdef ctmrGUI < handle
             
             
             %% Inside subframe 4 - frame 2
-            % Button 1 inside subframe 4
-            %             obj.controls.btnOpenCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'pushbutton', 'Position', [10 25 100 40], ...
-            %                 'String', 'Open', 'Callback', @obj.btnOpenCT1, 'FontSize', 9 , 'FontWeight', 'bold');
             
             % text box inside subframe 4
             obj.controls.txtCT2 = uicontrol( 'Parent', obj.controls.subframe4, 'Style', 'edit', 'Position', [10 26 168+105 36], ...
@@ -207,38 +220,71 @@ classdef ctmrGUI < handle
                 'FontSize', 8, 'string','name...' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
             %select an hemisphere
-            obj.controls.Hemisphere = uibuttongroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', @obj.radiobtnSelectionHemisphere,'Position', [0 0.33 1 0.33],'Bordertype', 'none');
+            obj.controls.Hemisphere = uibuttongroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', ...
+                @obj.radiobtnSelectionHemisphere,'Position', [0 0.33 1 0.33],'Bordertype', 'none');
             
-            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [160 75-5 230 25], ...
-                'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
-             obj.controls.radiobtn3.Value = 0;
-             
-            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [220 75-5 230 25], ...
-                'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
-             obj.controls.radiobtn4.Value = 0;
-             
+            % text box select hemisphere
             obj.controls.txtHemisphere = uicontrol( obj.controls.Hemisphere, 'Style', 'text', 'Position', [10 60-5 150 40], ...
                 'FontSize', 10, 'string', {'Implanted hemisphere:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
             
+            %radio button 3
+            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [120-2 75-5 230 25], ...
+                'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn3.Value = 0;
+            
+            %radio button 4
+            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [175-1 75-5 230 25], ...
+                'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn4.Value = 0;
+            
+            %radio button 6
+            obj.controls.radiobtn6 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [238-2 75-5 230 25], ...
+                'FontSize', 10, 'string', 'Both' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
+            obj.controls.radiobtn6.Value = 0;
+            
+            % Tab group for each scheme
+            obj.controls.layout = uitabgroup('Parent', obj.controls.subframe6, 'Visible', 'on', 'SelectionChangedFcn', @obj.tabSelectScheme,...
+                'Position', [0.02 0.02 0.97 0.45], 'TabLocation', 'Top');
+            
+            % Tab 1
+            obj.controls.tab(1) = uitab( obj.controls.layout, 'Title', 'Layout 1', 'HandleVisibility','off');
+            
+            % Add tab
+            obj.controls.addTab = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'pushbutton', 'Position', [243 132 22 22], ...
+                'String', '+', 'Callback', @obj.btnAddTab, 'FontSize', 12 , 'FontWeight', 'bold','Enable', 'off');
+            
+            % remove tab
+            obj.controls.removeTab = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'pushbutton', 'Position', [267 132 22 22], ...
+                'String', '-', 'Callback', @obj.btnRemoveTab, 'FontSize', 16, 'Enable', 'off' );
+            
             %set grid settings:
             %text box
-            obj.controls.txtGrid1 = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'text', 'Position', [10 135 230 20], ...
+            obj.controls.txtGrid1(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'text', 'Position', [10 93 230 20], ...
                 'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
             %text box
-            obj.controls.txtGrid2 = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'text', 'Position', [10 95 230 40], ...
-                'FontSize', 8, 'string', {'(Grid label, ch#, dim1, dim2, etc.)'} , 'HorizontalAlignment', 'left','enable','inactive');
+            obj.controls.txtGrid2(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'text', 'Position', [10 53 230 40], ...
+                'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
             
             %edit text box
-            obj.controls.edtGrid = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'edit', 'Position', [10 80 273 36], ...
+            obj.controls.edtGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'edit', 'Position', [10 35 260 36], ...
                 'FontSize', 10, 'string','e.g.: C, [1 3:32], 4, 8' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
-            % Button 1 inside subframe 2
-            obj.controls.btnAddGrid = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'pushbutton', 'Position', [10 25 110 40], ...
-                'String', 'Add grid', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
+            % Add grid
+            obj.controls.addGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
             
-            % Button 2 inside subframe 2
-            obj.controls.btnRemoveGrid = uicontrol( 'Parent', obj.controls.subframe6, 'Style', 'pushbutton', 'Position', [128 25 155 40], ...
-                'String', 'Delete previous grid', 'Callback', @obj.btnRemoveGrid, 'FontSize', 9 , 'FontWeight', 'bold', 'enable', 'off');
+            % remove grid
+            obj.controls.removeGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','off' );
+            
+            % previous grid
+            obj.controls.previousGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+            
+            % next grid
+            obj.controls.nextGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+            
             
             %% Logging frame
             obj.controls.logframe = uipanel( 'Parent', obj.mainFig, 'Units', 'pixels', 'Position', [10 10 980 frameheight-20+40], ...
@@ -266,7 +312,7 @@ classdef ctmrGUI < handle
                 set(obj.controls.frame3,'Visible', 'on');
                 
                 %create directories
-                mkdir('ALICE'); 
+                mkdir('ALICE');
                 fileattrib ./ALICE +w g
                 cd ./ALICE;
                 obj.settings.currdir = [pwd '/'];
@@ -290,7 +336,7 @@ classdef ctmrGUI < handle
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/open_afni_suma.csh'], [obj.settings.currdir 'data/3Dclustering/']);
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/indexify_electrodes.csh'], [obj.settings.currdir 'data/3Dclustering/']);
                 copyfile([obj.settings.scriptspath 'AFNI_scripts' '/delete_cluster.csh'], [obj.settings.currdir 'data/3Dclustering/']);
-
+                
                 cd(obj.settings.currdir);
                 addpath(genpath(obj.settings.currdir));
                 %log
@@ -303,7 +349,8 @@ classdef ctmrGUI < handle
         function LocateDirectory( obj )
             
             folderName = uigetdir('.', 'Please locate ALICE folder.');
-            if folderName~=0
+            
+            if sum(folderName)~=0 && strcmp(folderName(end-4:end), 'ALICE')
                 
                 %make panels visible
                 set(obj.controls.frame1,'Visible', 'on');
@@ -321,55 +368,179 @@ classdef ctmrGUI < handle
                 
                 if exist([obj.settings.currdir '/log_info/settings.mat'])==2
                     
-                    oldsettings  = load([obj.settings.currdir '/log_info/settings.mat']);
-                    obj.settings = oldsettings.settings;
+                    oldsettings          = load([obj.settings.currdir '/log_info/settings.mat']);
+                    obj.settings         = oldsettings.settings;
+                    obj.settings.currdir = [folderName '/'];
+                    
+                    %check for version differences:
+                    if ~isfield(obj.settings,'version') || obj.settings.version < 6.5
+                        obj.settings.version = obj.alice_version;
+                        %add new fields
+                        if ~isempty(obj.settings.Grids)
+                            obj.settings.Layout  = {obj.settings.Grids};
+                            obj.settings.Grids = [];
+                        else
+                            obj.settings.Layout  = [];
+                        end
+                        obj.settings.Tabnum  = 1;
+                        obj.settings.Gridnum = 0;
+                    end
                     
                     try
                         set(obj.controls.edtCV, 'String',obj.settings.CV);
                         set(obj.controls.edtR, 'String',obj.settings.R);
                         set(obj.controls.edtIS, 'String',obj.settings.IS);
+                        set(obj.controls.checkBoxSaveNii, 'value', obj.settings.saveNii);
                     end
                     
                     try
                         set(obj.controls.edtSbjName, 'String',obj.settings.subject);
-                        if ~isempty(obj.settings.Grids)
-                            set(obj.controls.edtGrid, 'String', 'Saved grid settings loaded...');
-                            %log
-                            LogInfo(obj, 1);
-                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
-                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
+                    end
+                                                         
+                    if ~isempty(obj.settings.Layout)
+                        
+                        %delete tabs if exist:
+                        try
+                            for t=length(obj.controls.tab):-1:1
+                                obj.controls.tab(t).Parent    = [];
+                                obj.controls.tab(t)           = [];
+                                obj.controls.edtGrid(t)       = [];
+                                obj.controls.nextGrid(t)      = [];
+                                obj.controls.previousGrid(t)  = [];
+                                obj.controls.addGrid(t)       = [];
+                                obj.controls.removeGrid(t)    = [];
+                                obj.controls.txtGrid1(t)      = [];
+                                obj.controls.txtGrid2(t)      = [];
+                            end
                         end
-                        if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
-                            set(obj.controls.radiobtn1,'Value', 1);
-                            set(obj.controls.radiobtn2,'Value', 0);
-                            set(obj.controls.edtGrid, 'Enable','on');
-                            set(obj.controls.btnAddGrid, 'Enable','on');
-                            set(obj.controls.btnRemoveGrid, 'Enable','on')
-                        else %if HD method
-                            set(obj.controls.radiobtn1,'Value', 0);
-                            set(obj.controls.radiobtn2,'Value', 1);
-                            set(obj.controls.edtGrid, 'Enable','off');
-                            set(obj.controls.btnAddGrid, 'Enable','off');
-                            set(obj.controls.btnRemoveGrid, 'Enable','off')
+                        
+                        for t = 1:length(obj.settings.Layout)
+                            
+                            obj.controls.tab(t) = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(t)], 'HandleVisibility','off');
+                            
+                            %add elements inside tab
+                            
+                            %add the edtGrid + buttons and text:
+                            obj.controls.txtGrid1(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 93 230 20], ...
+                                'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
+                            %text box
+                            obj.controls.txtGrid2(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 53 230 40], ...
+                                'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                            
+                            %edit text box
+                            obj.controls.edtGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'edit', 'Position', [10 35 260 36], ...
+                                'FontSize', 10, 'string','  ' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                            
+                            % Add grid
+                            obj.controls.addGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                                'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
+                            
+                            % remove grid
+                            obj.controls.removeGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                                'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','off' );
+                            
+                            % previous grid
+                            obj.controls.previousGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                                'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                            
+                            % next grid
+                            obj.controls.nextGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                                'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                            
                         end
-                        if strcmp(obj.settings.Hemisphere, 'Left')
-                            set(obj.controls.radiobtn3,'Value', 1);
-                            set(obj.controls.radiobtn4,'Value', 0);
+                        
+                        %create tab and overwrite tab one
+                        if length(obj.settings.Layout) > 1
+                            set(obj.controls.addTab,'enable','on');
+                            set(obj.controls.removeTab,'enable','on');
                         else
-                            set(obj.controls.radiobtn3,'Value', 0);
-                            set(obj.controls.radiobtn4,'Value', 1);
+                            set(obj.controls.addTab,'enable','on');
+                            set(obj.controls.removeTab,'enable','off');
                         end
+                        
+                        %highlight last used tab (works for Tabnum==1 and Tabnum>1)
+                        set(obj.controls.layout, 'SelectedTab',obj.controls.tab(obj.settings.Tabnum));
+                        
+                        obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum};
+                        obj.settings.Gridnum = length(obj.settings.Grids);
+                        
+                        %display last grid settings
+                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'enable', 'on');
+                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end}));                        
+                        
+                        if length(obj.settings.Grids)==1
+                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off');
+                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
+                            
+                        else %more than 1
+                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off'); %set to last grid, so no next grid
+                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
+                        end  
+                        
+                        %log
+                        LogInfo(obj, 3);
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'    ')]});
+                        loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'    ')]);
+                        
                     end
                     
-                    %log
-                    LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
-                    loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
+                    %set method
+                    if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
+                        set(obj.controls.radiobtn1,'Value', 1);
+                        set(obj.controls.radiobtn2,'Value', 0);
+                        set(obj.controls.radiobtn5,'Value', 0);
+                        
+                    elseif  strcmp(obj.settings.Method, 'Method HD') %if HD method
+                        set(obj.controls.radiobtn1,'Value', 0);
+                        set(obj.controls.radiobtn2,'Value', 1);
+                        set(obj.controls.radiobtn5,'Value', 0);
+                        
+                    elseif  strcmp(obj.settings.Method, 'Method sEEG') %if sEEG method
+                        set(obj.controls.radiobtn1,'Value', 0);
+                        set(obj.controls.radiobtn2,'Value', 0);
+                        set(obj.controls.radiobtn5,'Value', 1);
+                        set(obj.controls.radiobtn3, 'Value',0);
+                        set(obj.controls.radiobtn3, 'Enable','off');
+                        set(obj.controls.radiobtn4, 'Value',0);
+                        set(obj.controls.radiobtn4, 'Enable','off');
+                        set(obj.controls.radiobtn6, 'Value',1);
+                        set(obj.controls.radiobtn6, 'Enable','off');
+                    
+                    end
+                    
+                    %set hemisphere
+                    if strcmp(obj.settings.Hemisphere, 'Left')
+                        set(obj.controls.radiobtn3,'Value', 1);
+                        set(obj.controls.radiobtn4,'Value', 0);
+                        set(obj.controls.radiobtn6,'Value', 0);
+                        
+                    elseif strcmp(obj.settings.Hemisphere, 'Right')
+                        set(obj.controls.radiobtn3,'Value', 0);
+                        set(obj.controls.radiobtn4,'Value', 1);
+                        set(obj.controls.radiobtn6,'Value', 0);
+                        
+                    elseif strcmp(obj.settings.Hemisphere, 'Both')
+                        set(obj.controls.radiobtn3,'Value', 0);
+                        set(obj.controls.radiobtn4,'Value', 0);
+                        set(obj.controls.radiobtn6,'Value', 1);
+                    end
                 end
+                
+                %log
+                LogInfo(obj, 2);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Saved subject name, cluster settings and grid settings loaded.']});
+                loggingActions(obj.settings.currdir,1,[' > Saved subject name, cluster settings and grid settings loaded.']);
+                
                 
                 %if files in folder then read them:
                 %MRI
-                if isfield(obj.settings, 'MRI') && ~isempty(obj.settings.MRI)
+                E = [obj.settings.currdir 'data/MRI/T1.nii'];
+                if exist(E)~=0
+                    obj.settings.MRI = [obj.settings.currdir 'data/MRI/T1.nii'];
                     set(obj.controls.txtMRI, 'string',['...' obj.settings.MRI(end-18:end)]);
                     set(obj.controls.txtMRI, 'FontSize',10);
                     
@@ -411,15 +582,20 @@ classdef ctmrGUI < handle
                     loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
                 end
                 
+                %update path info
                 addpath(genpath(obj.settings.currdir));
                 obj.settings.scriptspath  = [fileparts( mfilename('fullpath') ) '/'];
                 addpath(genpath(obj.settings.scriptspath));
                 
-            else %if no directory is selected
-                disp('! WARNING: No directory selected.');
+                settings = obj.settings;
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
+                
+            else %if wrong directory is selected
+                errordlg('Please select an ''ALICE'' folder.')
+                disp('! ERROR: Please select an ''ALICE'' folder.');
                 %log
                 LogInfo(obj, 1);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> WARNING: No directory selected.'});
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> ERROR: Please select an ''ALICE'' folder.'});
                 
             end
         end
@@ -467,7 +643,7 @@ classdef ctmrGUI < handle
                     %display instruction box:
                     h = msgbox({['To check whether the alignment was successful,', ' please check the overlayed files in AFNI.'],...
                         ['For that use the buttons OVERLAY and UNDERLAY ', 'to specify the CT and MRI, respectively. ', ...
-                        'Use the intensity button on the volume windows (9),', ' to decrease/increase the intensity of the overlay.'],...
+                        'Use the intensity button on the volume windows,', ' to decrease/increase the intensity of the overlay.'],...
                         [' '],['- If the alignment is good, please close AFNI and proceed to Step 2.'],...
                         ['- If the alignment is NOT good, please check the if the CT and MRI where correctly',...
                         ' converted to *.nii. Check orientation and voxel sizes too.']},'How to check if alignment was successful?', 'help');
@@ -627,6 +803,19 @@ classdef ctmrGUI < handle
                         fileattrib([list{k,1} '/' list{k,2}],'+w','g');
                     end
                 end
+            end
+            
+            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
+                %move all grids to layout for completeness
+                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
+                obj.settings.Grids  = [];
+            else
+                obj.settings.Grids  = [];
+            end
+            %save changes in settings mat file
+            settings = obj.settings;
+            try
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
             end
             
             delete( hObject );
@@ -934,43 +1123,40 @@ classdef ctmrGUI < handle
             
             obj.settings.Method = callbackdata.NewValue.String;
             
-            if strcmp(obj.settings.Method,'Method 1 (Hermes et al. 2010)')
-                %enable grid settings
-                set(obj.controls.radiobtn3, 'Value',0);
-                set(obj.controls.radiobtn3, 'Enable','on');
-                set(obj.controls.radiobtn4, 'Value',0);
-                set(obj.controls.radiobtn4, 'Enable','on');
-                set(obj.controls.edtGrid, 'Enable','on');
-                set(obj.controls.btnAddGrid, 'Enable','on');
-                set(obj.controls.btnRemoveGrid, 'Enable','on');
-                
-            elseif strcmp(obj.settings.Method,'Method HD')
-                %disable grid settings
-                set(obj.controls.edtGrid, 'Enable','off');
-                set(obj.controls.btnAddGrid, 'Enable','off');
-                set(obj.controls.btnRemoveGrid, 'Enable','off');
-                set(obj.controls.radiobtn3, 'Value',0);
-                set(obj.controls.radiobtn3, 'Enable','on');
-                set(obj.controls.radiobtn4, 'Value',0);
-                set(obj.controls.radiobtn4, 'Enable','on');
-                
-            elseif strcmp(obj.settings.Method,'Method sEEG')
-                %enable grid settings
-                set(obj.controls.radiobtn3, 'Value',0);
-                set(obj.controls.radiobtn3, 'Enable','off');
-                set(obj.controls.radiobtn4, 'Value',0);
-                set(obj.controls.radiobtn4, 'Enable','off');
-                set(obj.controls.edtGrid, 'Enable','on');
-                set(obj.controls.btnAddGrid, 'Enable','on');
-                set(obj.controls.btnRemoveGrid, 'Enable','on');
-                %show both hemipsheres:
-                obj.settings.Hemisphere = 'both';
-            end
-            
             %log
             LogInfo(obj, 1);
             set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ' obj.settings.Method ' selected.']});
             loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Method ' selected.']);
+            
+            if strcmp(obj.settings.Method,'Method 1 (Hermes et al. 2010)')
+                set(obj.controls.radiobtn3, 'Enable','on');
+                set(obj.controls.radiobtn4, 'Enable','on');
+                set(obj.controls.radiobtn6, 'Enable','on');
+                
+            elseif strcmp(obj.settings.Method,'Method HD')
+                set(obj.controls.radiobtn3, 'Enable','on');
+                set(obj.controls.radiobtn4, 'Enable','on');
+                set(obj.controls.radiobtn6, 'Enable','on');
+                
+            elseif strcmp(obj.settings.Method,'Method sEEG')
+                set(obj.controls.radiobtn3, 'Value',0);
+                set(obj.controls.radiobtn3, 'Enable','off');
+                set(obj.controls.radiobtn4, 'Value',0);
+                set(obj.controls.radiobtn4, 'Enable','off');
+                set(obj.controls.radiobtn6, 'Value',1);
+                set(obj.controls.radiobtn6, 'Enable','off');
+                %show both hemipsheres by default (no option):
+                obj.settings.Hemisphere = 'Both';
+                
+                %show grid settings if already saved
+                if ~isempty(obj.settings.Grids)
+                    for gridnum=1:length(obj.settings.Grids)
+                        LogInfo(obj, 1);
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]});
+                        loggingActions(obj.settings.currdir,3,[' > Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]);
+                    end
+                end
+            end
             
         end
         
@@ -982,31 +1168,258 @@ classdef ctmrGUI < handle
             %log
             LogInfo(obj, 1);
             set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ' obj.settings.Hemisphere ' hemisphere selected.']});
-            loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Hemisphere ' hemisphere selected.']);
+            loggingActions(obj.settings.currdir,3,[' > ' obj.settings.Hemisphere ' hemisphere(s) selected.']);
+            
             
         end
         
-        %grid settings
+        %choose tab
+        function tabSelectScheme( obj, hObject, ~ )
+            
+            auxtab = get(obj.controls.layout,'SelectedTab');
+            auxtab = auxtab.Title;
+            obj.settings.Tabnum = str2double(auxtab(end));
+            
+            %log
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Tab ' num2str(obj.settings.Tabnum) ' selected.']});
+            loggingActions(obj.settings.currdir,3,[' > Tab ' num2str(obj.settings.Tabnum) ' selected.']);
+            
+            %add last grids (if any) to the layout
+            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
+                %move all grids to layout for completeness
+                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
+                obj.settings.Grids  = [];
+            else
+                obj.settings.Grids  = [];
+            end
+            
+            %show grids in current tab in log
+            if ~isempty(obj.settings.Layout)
+                
+                if length(obj.settings.Layout) < obj.settings.Tabnum
+                    
+                    set(obj.controls.edtGrid(obj.settings.Tabnum),'string','  ');
+                    
+                else
+                    obj.settings.Grids = obj.settings.Layout{obj.settings.Tabnum};
+                    
+                    for gridnum=1:length(obj.settings.Grids)
+                        LogInfo(obj, 1);
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]});
+                        loggingActions(obj.settings.currdir,3,[' > Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]);
+                    end
+                    
+                    %show last grid when moving between tabs
+                    set(obj.controls.edtGrid(obj.settings.Tabnum),'string',strtrim(obj.settings.Grids{end}));
+                    obj.settings.Gridnum = length(obj.settings.Grids);
+                end
+                
+            end
+            
+            settings = obj.settings;
+            save([obj.settings.currdir '/log_info/settings'], 'settings');
+            
+        end
+        
+        %add tab
+        function btnAddTab( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
+            
+            %if tab is added
+            auxtab = get(obj.controls.layout,'SelectedTab');
+            auxtab = auxtab.Title;
+            obj.settings.Tabnum = str2double(auxtab(end));
+            
+            if obj.settings.Tabnum == 3
+                
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['>! WARNING: Maximum number of Layouts reached!']});
+                loggingActions(obj.settings.currdir,3,['>! WARNING: Maximum number of Layouts reached!']);
+                
+            else
+                
+                if isempty(obj.settings.Grids) %only allow new tab if there are grids in layout previous
+                    
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['>! WARNING: Please complete current Layout before creating a new layout.']});
+                    loggingActions(obj.settings.currdir,3,['>! WARNING: Please complete current Layout before creating a new layout.']);
+                    
+                else %create tab
+                    
+                    numberTabs                    = length(obj.controls.tab) +1;
+                    obj.controls.tab(numberTabs)  = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(numberTabs)], 'HandleVisibility','off');
+                    %select new tab
+                    set(obj.controls.layout,'SelectedTab',obj.controls.tab(numberTabs));
+                    
+                    %move old grid settings to Layout
+                    obj.settings.Layout  = [obj.settings.Layout {obj.settings.Grids}];
+                    obj.settings.Tabnum  = numberTabs;
+                    %empty grids
+                    obj.settings.Grids   = [];
+                    obj.settings.Gridnum = 0;
+                    
+                    %set remove tab button on
+                    set(obj.controls.removeTab,'enable', 'on');
+                    
+                    %add the edtGrid + buttons and text:
+                    obj.controls.txtGrid1(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'text', 'Position', [10 93 230 20], ...
+                        'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
+                    %text box
+                    obj.controls.txtGrid2(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'text', 'Position', [10 53 230 40], ...
+                        'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                    
+                    %edit text box
+                    obj.controls.edtGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'edit', 'Position', [10 35 260 36], ...
+                        'FontSize', 10, 'string','  ' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                    
+                    % Add grid
+                    obj.controls.addGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                        'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
+                    
+                    % remove grid
+                    obj.controls.removeGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                        'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','off' );
+                    
+                    % previous grid
+                    obj.controls.previousGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                        'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                    
+                    % next grid
+                    obj.controls.nextGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                        'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                    
+                    %log action
+                    LogInfo(obj, 1);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> New Layout added. Please add a grid.']});
+                    loggingActions(obj.settings.currdir,3,['> New Layout added. Please add a grid.']);
+                    
+                    settings = obj.settings;
+                    save([obj.settings.currdir '/log_info/settings'], 'settings');
+                end
+            end
+            
+            settings = obj.settings;
+            save([obj.settings.currdir '/log_info/settings'], 'settings');
+        end
+        
+        %remove tab
+        function btnRemoveTab( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
+            
+            %add last grids (if any) to the layout
+            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
+                %move all grids to layout for completeness
+                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
+                obj.settings.Grids  = [];
+            else
+                obj.settings.Grids  = [];
+            end
+                       
+            %extract tabnum
+            auxtab = get(obj.controls.layout,'SelectedTab');
+            auxtab = auxtab.Title;
+            obj.settings.Tabnum = str2double(auxtab(end));
+            
+            if length(obj.controls.tab) > 1 && obj.settings.Tabnum > 1
+                
+                %delete last layout saved
+                if length(obj.settings.Layout) >= obj.settings.Tabnum
+                    
+                    obj.settings.Layout(obj.settings.Tabnum) = [];
+                end
+                
+                %delete tab and tab object
+                obj.controls.tab(obj.settings.Tabnum).Parent    = [];
+                obj.controls.tab(obj.settings.Tabnum)           = [];
+                obj.controls.edtGrid(obj.settings.Tabnum)       = [];
+                obj.controls.nextGrid(obj.settings.Tabnum)      = [];
+                obj.controls.previousGrid(obj.settings.Tabnum)  = [];
+                obj.controls.addGrid(obj.settings.Tabnum)       = [];
+                obj.controls.removeGrid(obj.settings.Tabnum)    = [];
+                obj.controls.txtGrid1(obj.settings.Tabnum)      = [];
+                obj.controls.txtGrid2(obj.settings.Tabnum)      = [];
+                
+                %reset layout to the last opened
+                if ~isempty(obj.settings.Layout)
+                    
+                    obj.settings.Grids = obj.settings.Layout{end}; %set to last by default
+                    set(obj.controls.edtGrid(end),'string', strtrim(obj.settings.Grids{end}));
+                    set(obj.controls.nextGrid(end), 'enable','off');
+                    
+                    if length(obj.settings.Grids)==1
+                        set(obj.controls.previousGrid(end), 'enable','off');
+                    end
+                    
+                end
+                
+                %disable removeTab if only one exists
+                if length(obj.controls.tab) == 1
+                    set(obj.controls.removeTab, 'Enable', 'off');
+                end
+                
+                %log action
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Layout ' num2str(obj.settings.Tabnum) ' removed.']});
+                loggingActions(obj.settings.currdir,3,['> Layout ' num2str(obj.settings.Tabnum) ' removed.']);
+                
+                %uopdate tanum: select last available tab
+                obj.settings.Tabnum = length(obj.controls.tab); %return to last tab as default
+                set(obj.controls.layout, 'SelectedTab',obj.controls.tab(end));
+                
+            else
+                
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Layout cannot be removed. Remove grids instead.']});
+                loggingActions(obj.settings.currdir,3,['> Layout cannot be removed. Remove grids instead.']);
+                
+            end
+            
+            settings = obj.settings;
+            save([obj.settings.currdir '/log_info/settings'], 'settings');
+        end
+        
+        %add grid
         function btnAddGrid( obj, hObject, ~ )
             
             cd(obj.settings.currdir);
             
             %evaluate with crtl+enter!
-            auxGrid = get(obj.controls.edtGrid, 'string');
-            auxGrid = ['        ' auxGrid]; %8 spaces
+            auxGrid = get(obj.controls.edtGrid(obj.settings.Tabnum), 'string');
+            auxGrid = ['    ' auxGrid]; %4 spaces
             
-            if isempty(auxGrid)
-                disp('! WARNING: Please enter the settings.');
+            %extract tabnum
+            auxtab = get(obj.controls.layout,'SelectedTab');
+            auxtab = auxtab.Title;
+            obj.settings.Tabnum = str2double(auxtab(end));
+            
+            if isempty(strtrim(auxGrid)) || strcmp(auxGrid,'    e.g.: C, [1 3:32], 4, 8')
+                
+                set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                set(obj.controls.edtGrid(obj.settings.Tabnum), 'string', '  ');
+                disp('! WARNING: Please enter grid the settings.');
                 %log
                 LogInfo(obj, 1);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please enter the settings.'});
-                loggingActions(obj.settings.currdir,3,' >! WARNING: Please enter the settings.');
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please enter grid the settings.'});
+                loggingActions(obj.settings.currdir,3,' >! WARNING: Please enter grid the settings.');
                 
             else
                 
+                obj.settings.Gridnum = obj.settings.Gridnum + 1;
                 obj.settings.Grids = [obj.settings.Grids, {auxGrid}];
                 gridnum = length(obj.settings.Grids);
-                set(obj.controls.btnRemoveGrid, 'enable', 'on');
+                
+                set(obj.controls.removeGrid(obj.settings.Tabnum), 'enable', 'on');
+                set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                set(obj.controls.addTab, 'enable','on');
+                
+                if length(obj.settings.Grids) < 2
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'off');
+                else
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'on');
+                end
                 
                 settings = obj.settings;
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
@@ -1027,24 +1440,116 @@ classdef ctmrGUI < handle
             %remove grid
             if ~isempty(obj.settings.Grids)
                 
+                %extract tabnum
+                auxtab = get(obj.controls.layout,'SelectedTab');
+                auxtab = auxtab.Title;
+                obj.settings.Tabnum = str2double(auxtab(end));
+                
                 if length(obj.settings.Grids)==1
-                    set(obj.controls.btnRemoveGrid, 'enable', 'off');
+                    
+                    obj.settings.Gridnum = 0;
+                    set(obj.controls.removeGrid(obj.settings.Tabnum), 'enable', 'off');
+                    set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'off');
                     obj.settings.Grids = obj.settings.Grids(1:end-1);
                     %log
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> All grid settings have been removed.']});
                     loggingActions(obj.settings.currdir,3,[' > All grid settings have been removed.']);
-                    set(obj.controls.edtGrid, 'string', ' ');
+                    set(obj.controls.edtGrid(obj.settings.Tabnum), 'string', ' ');
+                    set(obj.controls.addTab, 'enable','off');
                     
                 else
+                    
+                    obj.settings.Gridnum = obj.settings.Gridnum - 1;
                     obj.settings.Grids = obj.settings.Grids(1:end-1);
+                    
+                    set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end})); %set to last settings by default
+                    set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'on');
+                    
                     %log
                     LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' obj.settings.Grids{1:end}]});
-                    loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' obj.settings.Grids{1:end}]);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'   ')]});
+                    loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'   ')]);
+                end
+            end
+        end
+        
+        %previous grid
+        function btnPreviousGrid( obj, hObject, ~)
+            
+            if obj.settings.Gridnum > 0
+                
+                obj.settings.Gridnum = obj.settings.Gridnum - 1;
+                
+                %extract tabnum
+                auxtab = get(obj.controls.layout,'SelectedTab');
+                auxtab = auxtab.Title;
+                obj.settings.Tabnum = str2double(auxtab(end));
+                
+                if length(obj.settings.Grids)>1
+                    set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','on');
+                else
+                    set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','off');
                 end
                 
+                if obj.settings.Gridnum==1
+                    set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
+                else
+                    set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
+                end
                 
+                set(obj.controls.edtGrid(obj.settings.Tabnum),'string', strtrim(obj.settings.Grids{obj.settings.Gridnum}));
+                
+                %log
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(obj.settings.Gridnum) ' selected: ' obj.settings.Grids{obj.settings.Gridnum}]});
+                loggingActions(obj.settings.currdir,3,['> Grid ' num2str(obj.settings.Gridnum) ' selected: ' obj.settings.Grids{obj.settings.Gridnum}]);
+                
+            end
+        end
+        
+        %next grids
+        function btnNextGrid( obj, hObject, ~)
+            
+            %extract tabnum
+            auxtab = get(obj.controls.layout,'SelectedTab');
+            auxtab = auxtab.Title;
+            obj.settings.Tabnum = str2double(auxtab(end));
+            
+            obj.settings.Gridnum = obj.settings.Gridnum + 1;
+            set(obj.controls.edtGrid(obj.settings.Tabnum),'string', strtrim(obj.settings.Grids{obj.settings.Gridnum}));
+            
+            if obj.settings.Gridnum==length(obj.settings.Grids)
+                set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable','on');
+                set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','off');
+            end
+            
+            %log
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(obj.settings.Gridnum) ' selected: ' obj.settings.Grids{obj.settings.Gridnum}]});
+            loggingActions(obj.settings.currdir,3,['> Grid ' num2str(obj.settings.Gridnum) ' selected: ' obj.settings.Grids{obj.settings.Gridnum}]);
+            
+        end
+        
+        %save nifti files
+        function checkBoxSaveNii( obj, hObject, ~ )
+            
+            cd(obj.settings.currdir);
+            
+            obj.settings.saveNii = get(obj.controls.checkBoxSaveNii, 'value');
+            
+            %log
+            if obj.settings.saveNii
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Save Nifti files selected.']});
+                loggingActions(obj.settings.currdir,3,[' > Save Nifti files selected.']);
+                
+            else
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Save Nifti files deselected.']});
+                loggingActions(obj.settings.currdir,3,[' > Save Nifti files deselected.']);
             end
             
         end
@@ -1060,6 +1565,15 @@ classdef ctmrGUI < handle
                 LogInfo(obj, 1);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please load a FreeSurfer segmentation!'});
                 loggingActions(obj.settings.currdir,3,' >! WARNING: Please load a FreeSurfer segmentation!');
+                return;
+            end
+            
+            %if no hemisphere
+            if isempty(obj.settings.Hemisphere)
+                %log
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: Please select an Hemisphere!'});
+                loggingActions(obj.settings.currdir,3,' >! WARNING: Please select an Hemisphere!');
                 return;
             end
             
@@ -1085,7 +1599,7 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,3, [ ' > Name entered: ' subject]);
             end
             
-            %check if grid settings were well inputted
+            %check if grid settings were well input
             for g=1:size(obj.settings.Grids,2)
                 grid = obj.settings.Grids{g};
                 comas = strfind(grid,',');
@@ -1109,14 +1623,14 @@ classdef ctmrGUI < handle
                 loggingActions(obj.settings.currdir,3,[' > Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 pause(1);
                 
-                status = runMethod1(obj);
+                status = runHermes(obj);
                 
                 if status==1
                     disp('> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
                     %log
                     LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.'});
-                    loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results/method/hemisphere.'});
+                    loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results/method/hemisphere.');
                     
                 end
                 
@@ -1132,7 +1646,7 @@ classdef ctmrGUI < handle
                 status = runHD(obj);
                 
                 if status==1
-                    disp('> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
+                    disp('> Electrode projection completed. Please find the results in ./results/method/hemisphere/.');
                     %log
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
@@ -1140,7 +1654,7 @@ classdef ctmrGUI < handle
                     
                 end
                 
-                elseif strcmp(obj.settings.Method, 'Method sEEG')
+            elseif strcmp(obj.settings.Method, 'Method sEEG')
                 
                 disp(['> Applying ' obj.settings.Method '... Please wait until a figure with the projected electrodes appears.']);
                 %log
@@ -1152,15 +1666,19 @@ classdef ctmrGUI < handle
                 status = runsEEG(obj);
                 
                 if status==1
-                    disp('> Electrode projection completed. Please find the results in ./results/projected_electrodes_coord/.');
+                    disp('> Electrode projection completed. Please find the results in ./results/method/hemisphere/.');
                     %log
                     LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.'});
-                    loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results_HD/projected_electrodes_coord/.');
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode projection completed. Please find the results in ./results/method/hemisphere/.'});
+                    loggingActions(obj.settings.currdir,3,' > Electrode projection completed. Please find the results in ./results/method/hemisphere/.');
                     
                 end
                 
             end
+            
+            %save changes in settings mat file
+            settings = obj.settings;
+            save([obj.settings.currdir '/log_info/settings'], 'settings');
             
         end
         

@@ -92,7 +92,7 @@ out_els=gs(out_ind,:);
 % out_els_rev_dist=sqrt(sum((els-out_els_rev).^2,2));
 
 % plot on surface to check
-figure
+figure,
 plot3(els(:,1),els(:,2),els(:,3),'b.','MarkerSize',20);
 hold on;
 plot3(out_els(:,1),out_els(:,2),out_els(:,3),'r.','MarkerSize',20);

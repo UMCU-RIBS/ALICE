@@ -1,4 +1,4 @@
-function [mask_matrix,mask_indices]=get_mask_V3(subject,grayfilename,outputdir,l_r,varargin)
+function [mask_matrix,mask_indices]=get_mask_from_FreeSurfer(subject,grayfilename,outputdir,l_r,varargin)
 % function [mask_matrix,mask_indices]=get_mask(FWHM for smoothing, brain_cutoff)
 % default FWHM for smoothing = 6
 % default brain_cutoff = 0.1 (of smoothed images)
@@ -29,11 +29,12 @@ data.grayfilename=grayfilename;
 
 brain_info=spm_vol([data.grayfilename]); [g]=spm_read_vols(brain_info);
 
-if isequal(l_r,'r')
+if strcmpi(l_r,'r')
     % select right brain:
     g(g==2)=0; 
     g(g==3)=0; 
-elseif isequal(l_r,'l') % select left brain:
+    
+elseif strcmpi(l_r,'l') % select left brain:
     g(g==41)=0; 
     g(g==42)=0; 
 end
@@ -81,7 +82,7 @@ dataOut=brain_info;
 
 br_cutoff_str=num2str(br_cutoff);
 outputnaam=strcat([outputdir subject '_balloon_'...
-    int2str(sm_lvl) '_' br_cutoff_str([1 3]) '.img']);
+    int2str(sm_lvl) '_' br_cutoff_str([1 3]) '.nii']);
 if ~exist(outputnaam,'file')
     dataOut.fname=outputnaam;
     disp(strcat(['saving ' outputnaam]));

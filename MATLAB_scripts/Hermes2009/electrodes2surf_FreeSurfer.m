@@ -1,4 +1,4 @@
-function [out_els,out_els_ind]=electrodes2surf(subject,index,checkdistance,elecselection,elecfname,gsfname,mrfname,savepath)
+function [out_els,out_els_ind]=electrodes2surf_FreeSurfer(subject,hemisphere,index,checkdistance,elecselection,elecfname,gsfname,mrfname,savepath)
 % function
 % [out_els,out_els_ind]=electrodes2surf(subject,index,checkdistance,elecselection)
 % [out_els,out_els_ind]=electrodes2surf(subject,index,checkdistance,elecselection,elecfname,gsfname)
@@ -90,14 +90,16 @@ dataOut=data.gsStruct;
 % outputdir= spm_select(1,'dir','select output directory');
 outputdir= savepath;
 for filenummer=1:100
-    outputnaam = strcat([outputdir subject '_singleGrid_projectedElectrodes_FreeSurfer_' int2str(filenummer) '_' int2str(index) '_' int2str(checkdistance) '.img']);
+    outputnaam = strcat([outputdir subject '_' hemisphere '_singleGrid_projectedElectrodes_FreeSurfer_' int2str(filenummer) '_' int2str(index) '_' int2str(checkdistance) '.img']);
     dataOut.fname = outputnaam;
     
     if ~exist(dataOut.fname,'file')>0
-        dataOut.fname = outputnaam;
-        disp(strcat(['saving ' outputnaam]));
-        % save the data
-        spm_write_vol(dataOut,data.newelec);
+%         dataOut.fname = outputnaam;
+%         disp(strcat(['saving ' outputnaam]));
+%         % save the data
+%         spm_write_vol(dataOut,data.newelec);
+
+        %save mat file only
         save(outputnaam(1:end-4),'out_els');
         break
     end

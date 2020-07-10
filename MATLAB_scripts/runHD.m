@@ -1,5 +1,9 @@
 function [status] = runHD(obj)
-%     Copyright (C) 2009  D. Hermes & K.J. Miller, Dept of Neurology and Neurosurgery, University Medical Center Utrecht
+%     This function uses freesurfer surface with electrode position extracted from 
+%     high res CT 3dclusters. This function uses NeuralAct toolbox to
+%     display the grid on the surface and assumes small brain shift.
+%
+%     Copyright (C) 2020  MP Branco. UMC Utrecht
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
@@ -13,52 +17,52 @@ function [status] = runHD(obj)
 % 
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-% (C) Oct2015. Edited by Anna Gaglianese and Mariana Branco.
-
-
-%% NOTES;
-% This script uses freesurfer surface with electrode position extracted from 
-% high res CT 3dclusters (using ctmr scirpt from Dora).
 
 
 %% set directory and paths:
 
-if exist('./results_HD/')==0
-    mkdir results_HD
-    mkdir results_HD/projected_electrodes_coord
-end
-
-mypath = './results_HD/';
-addpath(mypath);
 status = 1;
 
 subject = obj.settings.subject;
 
-%remove old files
-system(['rm ./results_HD/' subject '*']);
-system(['rm ./results_HD/CM*']);
-
-%% 1.1) generate surface to project electrodes to
+%set hemisphere
 hemisphere = obj.settings.Hemisphere;
 if strcmp(hemisphere, 'Left')
-    hemi = 'l';
-else
-    hemi = 'r';
+    hemi = 'L';
+elseif strcmp(hemisphere, 'Right')
+    hemi = 'R';
+elseif strcmp(hemisphere, 'Both')
+    hemi = 'L&R';
+    hemisphere = 'left_right';
 end
 
-if exist(['./results_HD/' subject '_balloon_11_03.img'])==0
-    % if using freesurfer:
-    get_mask_from_FreeSurfer(subject,... % subject name
-        './data/FreeSurfer/t1_class.nii',... % freesurfer class file
-        './results_HD/',... % where you want to safe the file
-        hemi,... % 'l' for left 'r' for right
-        11,0.3); % settings for smoothing and threshold
-    %Visualize the surface with afni or mricron
-    %saved as subject_balloon_11_03, where 11 and 0.3 are the chosen parameters.
+%set directories
+if exist('./pictures/') == 0
+    mkdir pictures
 end
 
-%% 1.2) Convert DICOM to NIFTI + Coregistration + 3dClustering + electrode selection and sorting
+if exist('./results/')==0
+    mkdir results
+    mkdir(['results/method_HD/' lower(hemisphere) '_hemisphere/intermediate_results/']);
+
+elseif exist('./results/method_HD/') == 0
+    mkdir results/method_HD/
+    mkdir(['results/method_HD/' lower(hemisphere) '_hemisphere/intermediate_results/']);
+end
+
+mypath = ['./results/method_HD/' lower(hemisphere) '_hemisphere/intermediate_results/'];
+addpath(mypath);
+
+%remove old files
+system(['rm ./results/method_HD/' lower(hemisphere) '_hemisphere/intermediate_results/' subject '_' hemi '*']);
+system(['rm ./results/method_HD/' lower(hemisphere) '_hemisphere/intermediate_results/CM_' hemi '*']);
+system(['rm ./results/method_HD/' lower(hemisphere) '_hemisphere/' subject '_' hemi '*']);
+system(['rm ./pictures/' subject '_HD_' hemi '*']);
+system(['rm ' subject '_' hemi '*']); %backward compatability
+
+
+
+%% Convert DICOM to NIFTI + Coregistration + 3dClustering + electrode selection and sorting
 
 % coregister CT to anatomical MR using Afni and preserving CT resolution.
 % extract electrodes clusters using 3D clustering
@@ -73,12 +77,12 @@ elecmatrix = elecmatrix.data(index,[1:3]);
 
 elecmatrix = [-elecmatrix(:,1:2) elecmatrix(:,3)];
 
-save([mypath 'CM_electrodes_sorted_all.mat'],'elecmatrix');
+save([mypath 'CM_' hemi '_electrodes_sorted_all.mat'],'elecmatrix');
 
 
-%% 4) Tansform coordinates to subject ANAT space:
+%% Tansform coordinates to subject ANAT space:
 
-load([mypath 'CM_electrodes_sorted_all.mat']);
+load([mypath 'CM_' hemi '_electrodes_sorted_all.mat']);
 
 Tmatrix = dlmread('./data/coregistration/CT_highresRAI_res_shft_al_mat.aff12.1D');
 Tmatrix2 = dlmread('./data/coregistration/CT_highresRAI_shft.1D');
@@ -104,36 +108,73 @@ end
 % plot3(elecmatrix(:,1),elecmatrix(:,2),elecmatrix(:,3),'.r','MarkerSize',20); legend('aligned');
 
 elecmatrix = coord_al_anatSPM;
-save([mypath 'CM_electrodes_sorted_all_aligned.mat'],'elecmatrix');
+save([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat'],'elecmatrix');
 
 
-%% 5) project electrodes 2 surface
+%% extract grid info
+%start waitbar
+f = waitbar(0.2,'Please wait...','windowstyle', 'modal');
+frames = java.awt.Frame.getFrames();
+frames(end).setAlwaysOnTop(1);
 
-electrodes_path = [mypath 'CM_electrodes_sorted_all_aligned.mat'];
-surface_path = [mypath subject '_balloon_11_03.img'];
-anatomy_path = './data/FreeSurfer/t1_class.nii';
+load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
+gridLabels = num2cell(elecmatrix(:,1));
+elecmatrix = zeros(size(elecmatrix));
 
-%% 6) combine electrode files into one 
+for g=1:size(obj.settings.Grids,2)
+    
+    grids = obj.settings.Grids{g};
+    %find comas:
+    comas = strfind(grids,',');
+       
+    %extract electrode number
+    gridEls   = str2num(grids(comas(1)+1:comas(2)-1));
+    %extract electrode coordinates
+    elecmatrix(gridEls,:) = coord_al_anatSPM(gridEls,:);
+    
+    %extract label and remove spaces
+    gridLabel = grids(1:comas(1)-1);
+    gridLabel = gridLabel((~isspace(gridLabel)));
+    gridLabels(gridEls,1) = cellstr(repmat(gridLabel,length(gridEls),1));
+    
+end
+
+%convert zero coordinates to nans:
+[~, index] = ismember(elecmatrix, [0 0 0], 'rows');
+if ~isempty(index)
+    elecmatrix(logical(index),:) = nan;
+    gridLabels(logical(index),:) = {'NaN'};
+end
+%and remove all nans because we are only interested in HD:
+gridLabels(isnan(elecmatrix(:,1))) = [];
+elecmatrix(isnan(elecmatrix(:,1)),:) = [];
+
+%% combine electrode files into one 
 
 % save all projected electrode locaions in a .mat file
-save([mypath subject '_electrodes_NOT_PROJECTED.mat'],'elecmatrix');
+save([mypath subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecmatrix');
 
 
 % make a NIFTI image with all projected electrodes
-[output,els,els_ind,outputStruct]=...
-    position2reslicedImage2(elecmatrix,anatomy_path);
-
-for filenummer=1:100
-    outputStruct.fname=[mypath subject '_electrodes_NOT_PROJECTED' int2str(filenummer) '.img' ];
-    if ~exist(outputStruct.fname,'file')>0
-        disp(['saving ' outputStruct.fname]);
-        % save the data
-        spm_write_vol(outputStruct,output);
-        break
+if isfield(obj.settings,'saveNii') && obj.settings.saveNii == 1
+    
+    [output,~,~,outputStruct]=...
+        position2reslicedImage2(elecmatrix,anatomy_path);
+    
+    for filenummer=1:100
+        outputStruct.fname=[mypath subject '_' hemi '_electrodes_NOT_PROJECTED' int2str(filenummer) '.img' ];
+        if ~exist(outputStruct.fname,'file')>0
+            disp(['saving ' outputStruct.fname]);
+            % save the data
+            spm_write_vol(outputStruct,output);
+            break
+        end
     end
 end
 
-%% 7) generate cortex to render images:
+%% generate cortex to render images:
+
+anatomy_path = './data/FreeSurfer/t1_class.nii';
 
 hemisphere = obj.settings.Hemisphere;
 if strcmp(hemisphere, 'Left')
@@ -142,7 +183,7 @@ if strcmp(hemisphere, 'Left')
     display_view = [270 0];
     % load cortex
     load([mypath subject '_L_cortex.mat']);
-    save([mypath '/projected_electrodes_coord/' subject '_L_cortex.mat'],'cortex');
+    save([mypath(1:end-21) subject '_L_cortex.mat'],'cortex');
     
 elseif strcmp(hemisphere, 'Right')
     % from freesurfer: in mrdata/.../freesurfer/mri
@@ -150,22 +191,27 @@ elseif strcmp(hemisphere, 'Right')
     display_view = [90 0];
     % load cortex
     load([mypath subject '_R_cortex.mat']);
-    save([mypath '/projected_electrodes_coord/' subject '_R_cortex.mat'],'cortex');
+    save([mypath(1:end-21) subject '_R_cortex.mat'],'cortex');
+else
+    % from freesurfer: in mrdata/.../freesurfer/mri
+    gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_L&R'],0.5,[15 3],'l_r',mypath);
+    display_view = [90 0];
+    % load cortex
+    load([mypath subject '_L&R_cortex.mat']);
+    save([mypath(1:end-21) subject '_L&R_cortex.mat'],'cortex');
 end
 
-%% 8) plot electrodes on surface before correction
+
+%% save electrodes on surface before correction
 
 % load electrodes on surface
-load([mypath subject '_electrodes_NOT_PROJECTED.mat']);
+load([mypath subject '_' hemi '_electrodes_NOT_PROJECTED.mat']);
 % save final folder
-save([mypath '/projected_electrodes_coord/' subject '_electrodes_NOT_PROJECTED.mat'],'elecmatrix')
-
-ctmr_gauss_plot(cortex,[0 0 0],0);
-el_add(elecmatrix,'r',20);
-loc_view(display_view(1), display_view(2));
+save([mypath(1:end-21) subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecmatrix')
 
 
-%% 9) NeuralAct for HD
+%% NeuralAct for HD
+waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 
 subj.electrodes = elecmatrix;
 
@@ -175,14 +221,6 @@ cortexcoarser = coarserModel(cortex, 5000);
 
 %compute the convex hull:
 hullcortex = hullModel(cortexcoarser);
-
-% View the brain and electrode locations
-%look at that brain and the electrode grids, using viewBrain:
-%(see also |viewBrain|)
-figure, set(gca, 'Color', 'none'); set(gcf, 'Color', 'w'); grid on;
-viewBrain(hullcortex, subj, {'brain', 'electrodes'}, 0.7, 32, [330,00]);
-title('Flattened brain model and electrode locations');
-light('Position',[-200, -200, 200]);
 
 % Project the electrodes
 %project the electrodes onto the surface of the brain:
@@ -200,39 +238,69 @@ subj.activations = zeros(size(elecmatrix,1),1);
 %produce an empty contribution field.
 [ vcontribs ] = electrodesContributions( cortex, subj, kernel, param, cutoff);
 
-save([mypath 'neuralAct_data_to_plot'], 'subj', 'cortex', 'cortexcoarser', 'elecmatrix','hullcortex', 'vcontribs');
+save([mypath subject '_' hemi '_neuralAct_data_to_plot'], 'subj', 'cortex', 'cortexcoarser', 'elecmatrix','hullcortex', 'vcontribs');
 
 trielectrodes = subj.trielectrodes;
-save([mypath '/projected_electrodes_coord/Electrodes_displayed_on_surface'], 'trielectrodes');
+% trielectrodes(3,3) = trielectrodes(3,3)-1; %correct one electrode of
+save([mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface'], 'trielectrodes');
 
-%% Plot
-load([mypath 'neuralAct_data_to_plot']);
 
-viewstruct.what2view = {'brain', 'trielectrodes','electrodes'};
-viewstruct.viewvect = [display_view];
-viewstruct.material = 'dull';
-viewstruct.enablelight = 1;
-viewstruct.enableaxis = 0;
+%% Save coordinates in txt file
+cell_with_coord = [gridLabels num2cell(round(trielectrodes,4))];
+
+try
+    writecell(cell_with_coord,[mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface.txt'],'Delimiter','tab');
+catch
+    disp('WARNING: Unable to save coordinates in txt file. Please use more recent version of Matlab (> 2019a)');
+end
+
+%% Plotting
+load([mypath subject '_' hemi '_neuralAct_data_to_plot']);
+
+viewstruct.what2view        = {'brain', 'trielectrodes','electrodes'};
+viewstruct.viewvect         = display_view;
+viewstruct.material         = 'dull';
+viewstruct.enablelight      = 1;
+viewstruct.enableaxis       = 0;
+
 if strcmp(hemisphere, 'Right')
     viewstruct.lightpos = [200, 0, 200];
 else
     viewstruct.lightpos = [-200, 0, 200];
 end
-viewstruct.lightingtype = 'gouraud';
-cmapstruct.cmap = colormap('Jet'); close(gcf); %because colormap creates a figure
-cmapstruct.basecol = [0.7, 0.7, 0.7];
-cmapstruct.fading = false;
-cmapstruct.ixg2 = floor(length(cmapstruct.cmap) * 0.15);
-cmapstruct.ixg1 = -cmapstruct.ixg2;
-cmapstruct.enablecolormap = true;
-cmapstruct.enablecolorbar = false;
-cmapstruct.cmin = 0;
-cmapstruct.cmax = 1;
 
-%Run |NeuralAct|:
-%add spheres electrodes
-viewstruct.what2view = {'brain'};
-figure; set(gca, 'Color', 'none'); set(gcf, 'Color', 'w'); grid off;
-NeuralAct( cortex, vcontribs, subj, 1, cmapstruct, viewstruct );
+viewstruct.lightingtype     = 'gouraud';
+cmapstruct.cmap             = colormap('Jet'); 
+if ishandle(2)
+    close(gcf); %because colormap creates a figure but not in newer versions of matlab
+end
+cmapstruct.basecol          = [0.7, 0.7, 0.7];
+cmapstruct.fading           = false;
+cmapstruct.ixg2             = floor(length(cmapstruct.cmap) * 0.15);
+cmapstruct.ixg1             = -cmapstruct.ixg2;
+cmapstruct.enablecolormap   = true;
+cmapstruct.enablecolorbar   = false;
+cmapstruct.cmin             = 0;
+cmapstruct.cmax             = 1;
+viewstruct.what2view        = {'brain'};
+
+waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
+
+%% Plot brain
+
+facealpha = 1;
+ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
+fg = gcf;
+%Add spheres electrodes
 plotSpheres(subj.trielectrodes, 'b');
+loc_view(display_view(1), display_view(2)+30);
+pause(3);
+
+saveas(fg,['./pictures/' subject '_HD_' hemi '.png']);
+
+pause(3);
+waitbar(1,f,'Please wait...','windowstyle', 'modal');
+
+pause(5);
+close(f);
 
