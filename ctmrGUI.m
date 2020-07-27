@@ -39,7 +39,7 @@ classdef ctmrGUI < handle
             obj.settings.subject = [];
             
             %empty lay9ut/grid settings:
-            obj.settings.Layout  = [];
+            obj.settings.Layout  = cell(1,3);
             obj.settings.Tabnum  = 1;
             obj.settings.Grids   = [];
             obj.settings.Gridnum = 0;
@@ -377,10 +377,10 @@ classdef ctmrGUI < handle
                         obj.settings.version = obj.alice_version;
                         %add new fields
                         if ~isempty(obj.settings.Grids)
-                            obj.settings.Layout  = {obj.settings.Grids};
-                            obj.settings.Grids = [];
+                            obj.settings.Layout{1}  = obj.settings.Grids;
+                            obj.settings.Grids      = [];
                         else
-                            obj.settings.Layout  = [];
+                            obj.settings.Layout     = cell(1,3);
                         end
                         obj.settings.Tabnum  = 1;
                         obj.settings.Gridnum = 0;
@@ -397,8 +397,6 @@ classdef ctmrGUI < handle
                         set(obj.controls.edtSbjName, 'String',obj.settings.subject);
                     end
                                                          
-                    if ~isempty(obj.settings.Layout)
-                        
                         %delete tabs if exist:
                         try
                             for t=length(obj.controls.tab):-1:1
@@ -414,79 +412,82 @@ classdef ctmrGUI < handle
                             end
                         end
                         
+                        %add new tabs
                         for t = 1:length(obj.settings.Layout)
                             
-                            obj.controls.tab(t) = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(t)], 'HandleVisibility','off');
+                            if ~isempty(obj.settings.Layout{t})
+                                
+                                obj.controls.tab(t) = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(t)], 'HandleVisibility','off');
+                                
+                                %add elements inside tab
+                                
+                                %add the edtGrid + buttons and text:
+                                obj.controls.txtGrid1(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 93 230 20], ...
+                                    'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
+                                %text box
+                                obj.controls.txtGrid2(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 53 230 40], ...
+                                    'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                                
+                                %edit text box
+                                obj.controls.edtGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'edit', 'Position', [10 35 260 36], ...
+                                    'FontSize', 10, 'string','  ' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                                
+                                % Add grid
+                                obj.controls.addGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                                    'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
+                                
+                                % remove grid
+                                obj.controls.removeGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                                    'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','off' );
+                                
+                                % previous grid
+                                obj.controls.previousGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                                    'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                                
+                                % next grid
+                                obj.controls.nextGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                                    'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                              
+                                %set add and remvoe tab buttons
+                                if t > 1
+                                    set(obj.controls.addTab,'enable','on');
+                                    set(obj.controls.removeTab,'enable','on');
+                                else
+                                    set(obj.controls.addTab,'enable','on');
+                                    set(obj.controls.removeTab,'enable','off');
+                                end
                             
-                            %add elements inside tab
+                            end
+                                                        
+                            %highlight last used tab (works for Tabnum==1 and Tabnum>1)
+                            set(obj.controls.layout, 'SelectedTab',obj.controls.tab(obj.settings.Tabnum));
                             
-                            %add the edtGrid + buttons and text:
-                            obj.controls.txtGrid1(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 93 230 20], ...
-                                'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
-                            %text box
-                            obj.controls.txtGrid2(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 53 230 40], ...
-                                'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                            obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum};
+                            obj.settings.Gridnum = length(obj.settings.Grids);
                             
-                            %edit text box
-                            obj.controls.edtGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'edit', 'Position', [10 35 260 36], ...
-                                'FontSize', 10, 'string','  ' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                            %display last grid settings
+                            set(obj.controls.edtGrid(obj.settings.Tabnum), 'enable', 'on');
+                            set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end}));
                             
-                            % Add grid
-                            obj.controls.addGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
-                                'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold');
+                            if length(obj.settings.Grids)==1
+                                set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                                set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                                set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off');
+                                set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
+                                
+                            else %more than 1
+                                set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                                set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                                set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off'); %set to last grid, so no next grid
+                                set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
+                            end
                             
-                            % remove grid
-                            obj.controls.removeGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
-                                'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','off' );
-                            
-                            % previous grid
-                            obj.controls.previousGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
-                                'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
-                            
-                            % next grid
-                            obj.controls.nextGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
-                                'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                            %log
+                            LogInfo(obj, 3);
+                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'    ')]});
+                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'    ')]);
                             
                         end
-                        
-                        %create tab and overwrite tab one
-                        if length(obj.settings.Layout) > 1
-                            set(obj.controls.addTab,'enable','on');
-                            set(obj.controls.removeTab,'enable','on');
-                        else
-                            set(obj.controls.addTab,'enable','on');
-                            set(obj.controls.removeTab,'enable','off');
-                        end
-                        
-                        %highlight last used tab (works for Tabnum==1 and Tabnum>1)
-                        set(obj.controls.layout, 'SelectedTab',obj.controls.tab(obj.settings.Tabnum));
-                        
-                        obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum};
-                        obj.settings.Gridnum = length(obj.settings.Grids);
-                        
-                        %display last grid settings
-                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'enable', 'on');
-                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end}));                        
-                        
-                        if length(obj.settings.Grids)==1
-                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
-                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
-                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off');
-                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
-                            
-                        else %more than 1
-                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
-                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
-                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off'); %set to last grid, so no next grid
-                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
-                        end  
-                        
-                        %log
-                        LogInfo(obj, 3);
-                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'    ')]});
-                        loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'    ')]);
-                        
-                    end
                     
                     %set method
                     if strcmp(obj.settings.Method, 'Method 1 (Hermes et al. 2010)')
@@ -805,11 +806,9 @@ classdef ctmrGUI < handle
                 end
             end
             
-            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
+            if ~isempty(obj.settings.Grids)
                 %move all grids to layout for completeness
-                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
-                obj.settings.Grids  = [];
-            else
+                obj.settings.Layout{obj.settings.Tabnum} = obj.settings.Grids;
                 obj.settings.Grids  = [];
             end
             %save changes in settings mat file
@@ -1178,6 +1177,13 @@ classdef ctmrGUI < handle
             
             auxtab = get(obj.controls.layout,'SelectedTab');
             auxtab = auxtab.Title;
+            if ~isempty(obj.settings.Grids)
+                %update layout
+                obj.settings.Layout{obj.settings.Tabnum}  = obj.settings.Grids;
+                obj.settings.Grids   = [];
+                obj.settings.Gridnum = 0;
+            end
+            %update tab number
             obj.settings.Tabnum = str2double(auxtab(end));
             
             %log
@@ -1185,26 +1191,12 @@ classdef ctmrGUI < handle
             set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Tab ' num2str(obj.settings.Tabnum) ' selected.']});
             loggingActions(obj.settings.currdir,3,[' > Tab ' num2str(obj.settings.Tabnum) ' selected.']);
             
-            %add last grids (if any) to the layout
-            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
-                %move all grids to layout for completeness
-                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
-                obj.settings.Grids  = [];
-            else
-                obj.settings.Grids  = [];
-            end
-            
             %show grids in current tab in log
-            if ~isempty(obj.settings.Layout)
+            if ~isempty(obj.settings.Layout{obj.settings.Tabnum})
                 
-                if length(obj.settings.Layout) < obj.settings.Tabnum
-                    
-                    set(obj.controls.edtGrid(obj.settings.Tabnum),'string','  ');
-                    
-                else
                     obj.settings.Grids = obj.settings.Layout{obj.settings.Tabnum};
                     
-                    for gridnum=1:length(obj.settings.Grids)
+                    for gridnum = 1:length(obj.settings.Grids)
                         LogInfo(obj, 1);
                         set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]});
                         loggingActions(obj.settings.currdir,3,[' > Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{gridnum}]);
@@ -1213,8 +1205,38 @@ classdef ctmrGUI < handle
                     %show last grid when moving between tabs
                     set(obj.controls.edtGrid(obj.settings.Tabnum),'string',strtrim(obj.settings.Grids{end}));
                     obj.settings.Gridnum = length(obj.settings.Grids);
-                end
-                
+                    
+                    %set add/remove/previous/next grid buttons (selected grid always
+                    %last)
+                    if length(obj.settings.Grids) > 1                 
+                        % remove grid
+                        obj.controls.removeGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                            'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','on' );
+                        % previous grid
+                        obj.controls.previousGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                            'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'on');
+                        % next grid
+                        obj.controls.nextGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                            'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                        % Add grid
+                        obj.controls.addGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                            'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold', 'Enable', 'on');                    
+                    end
+                    
+                    if length(obj.settings.Grids) == 1
+                        % remove grid
+                        obj.controls.removeGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [150 7 22 22], ...
+                            'String', '-', 'Callback', @obj.btnRemoveGrid, 'FontSize', 16,'Enable','on' );
+                        % previous grid
+                        obj.controls.previousGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [90 7 22 22], ...
+                            'String', '<', 'Callback', @obj.btnPreviousGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                        % next grid
+                        obj.controls.nextGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [180 7 22 22], ...
+                            'String', '>', 'Callback', @obj.btnNextGrid, 'FontSize', 11 , 'FontWeight', 'bold', 'Enable', 'off');
+                        % Add grid
+                        obj.controls.addGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
+                            'String', '+', 'Callback', @obj.btnAddGrid, 'FontSize', 12 , 'FontWeight', 'bold', 'Enable', 'on');                       
+                end                
             end
             
             settings = obj.settings;
@@ -1253,8 +1275,8 @@ classdef ctmrGUI < handle
                     %select new tab
                     set(obj.controls.layout,'SelectedTab',obj.controls.tab(numberTabs));
                     
-                    %move old grid settings to Layout
-                    obj.settings.Layout  = [obj.settings.Layout {obj.settings.Grids}];
+                    %update layout
+                    obj.settings.Layout{obj.settings.Tabnum}  = obj.settings.Grids;
                     obj.settings.Tabnum  = numberTabs;
                     %empty grids
                     obj.settings.Grids   = [];
@@ -1309,13 +1331,11 @@ classdef ctmrGUI < handle
             
             cd(obj.settings.currdir);
             
-            %add last grids (if any) to the layout
-            if ~isempty(obj.settings.Grids) && length(obj.settings.Layout)<length(obj.controls.tab)
-                %move all grids to layout for completeness
-                obj.settings.Layout = [obj.settings.Layout {obj.settings.Grids}];
-                obj.settings.Grids  = [];
-            else
-                obj.settings.Grids  = [];
+            %update layout
+            if ~isempty(obj.settings.Grids)
+                obj.settings.Layout{obj.settings.Tabnum} = obj.settings.Grids;
+                obj.settings.Grids   = [];
+                obj.settings.Gridnum = 0;
             end
                        
             %extract tabnum
@@ -1326,11 +1346,8 @@ classdef ctmrGUI < handle
             if length(obj.controls.tab) > 1 && obj.settings.Tabnum > 1
                 
                 %delete last layout saved
-                if length(obj.settings.Layout) >= obj.settings.Tabnum
-                    
-                    obj.settings.Layout(obj.settings.Tabnum) = [];
-                end
-                
+                obj.settings.Layout{obj.settings.Tabnum} = [];
+
                 %delete tab and tab object
                 obj.controls.tab(obj.settings.Tabnum).Parent    = [];
                 obj.controls.tab(obj.settings.Tabnum)           = [];
@@ -1341,31 +1358,13 @@ classdef ctmrGUI < handle
                 obj.controls.removeGrid(obj.settings.Tabnum)    = [];
                 obj.controls.txtGrid1(obj.settings.Tabnum)      = [];
                 obj.controls.txtGrid2(obj.settings.Tabnum)      = [];
-                
-                %reset layout to the last opened
-                if ~isempty(obj.settings.Layout)
-                    
-                    obj.settings.Grids = obj.settings.Layout{end}; %set to last by default
-                    set(obj.controls.edtGrid(end),'string', strtrim(obj.settings.Grids{end}));
-                    set(obj.controls.nextGrid(end), 'enable','off');
-                    
-                    if length(obj.settings.Grids)==1
-                        set(obj.controls.previousGrid(end), 'enable','off');
-                    end
-                    
-                end
-                
-                %disable removeTab if only one exists
-                if length(obj.controls.tab) == 1
-                    set(obj.controls.removeTab, 'Enable', 'off');
-                end
-                
+                              
                 %log action
                 LogInfo(obj, 1);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Layout ' num2str(obj.settings.Tabnum) ' removed.']});
                 loggingActions(obj.settings.currdir,3,['> Layout ' num2str(obj.settings.Tabnum) ' removed.']);
                 
-                %uopdate tanum: select last available tab
+                %update tabnum: select last available tab
                 obj.settings.Tabnum = length(obj.controls.tab); %return to last tab as default
                 set(obj.controls.layout, 'SelectedTab',obj.controls.tab(end));
                 
@@ -1375,6 +1374,25 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Layout cannot be removed. Remove grids instead.']});
                 loggingActions(obj.settings.currdir,3,['> Layout cannot be removed. Remove grids instead.']);
                 
+            end
+            
+            %reset layout to the last opened
+            if ~isempty(obj.settings.Layout{obj.settings.Tabnum})
+                
+                obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum}; %set to last by default
+                obj.settings.Gridnum = length(obj.settings.Grids);
+                set(obj.controls.edtGrid(end),'string', strtrim(obj.settings.Grids{end}));
+                set(obj.controls.nextGrid(end), 'enable','off');
+                
+                if length(obj.settings.Grids)<=1
+                    set(obj.controls.previousGrid(end), 'enable','off');
+                end
+                
+            end
+            
+            %disable removeTab if only one exists
+            if length(obj.controls.tab) == 1
+                set(obj.controls.removeTab, 'Enable', 'off');
             end
             
             settings = obj.settings;

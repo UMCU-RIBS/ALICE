@@ -1,12 +1,20 @@
    
     ALICE 
-  version 7
+  version 7.1
 
-Date:   07 July 2020
+Date:   27 July 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 --------- Info log: -----------------------------------------------------------
+[ V7.1 27-07-2020]
+
+_____Bug fix___________________________________________________________________
++ defined layout as empty cell with 3 entries. fixed bug when swaping between layouts.
+
+_____Minor update______________________________________________________________
++ added information in documentation about layouts (version 21-07-2020).
+
 
 [ v7 21-05-2020 ]
 
