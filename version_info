@@ -1,12 +1,16 @@
    
     ALICE 
-  version 7.1
+  version 7.2
 
-Date:   27 July 2020
+Date:   07 September 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 --------- Info log: -----------------------------------------------------------
+[ v7.2 07-09-2020]
+_____Bug fix___________________________________________________________________
++ locate directory button didn't load empty layout tab/paths
+
 [ V7.1 27-07-2020]
 
 _____Bug fix___________________________________________________________________

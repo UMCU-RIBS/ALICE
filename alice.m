@@ -2,7 +2,7 @@
 % MP Branco et al. 2017
 %
 % (C) Mariana P. Branco, 
-%     July 2020
+%     September 2020
 
 
 
@@ -13,7 +13,7 @@ thisDirectory = pwd;
 
 disp('                                 ');
 disp('  ****** Welcome to ALICE ****** ');
-disp('      Version 7.1 (July 2020)     ');
+disp('   Version 7.2 (September 2020)  ');
 disp('   A UMCU and NIH collaboration. ')
 disp('                                 ');
 
