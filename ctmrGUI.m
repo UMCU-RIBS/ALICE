@@ -16,7 +16,7 @@ classdef ctmrGUI < handle
             height		= 750;
             frameheight = 200;
             
-            obj.alice_version = 6.5;
+            obj.alice_version = 7.3;
             
             %number lines in action log.
             obj.settings.NUM_LINES = 9;
@@ -396,26 +396,26 @@ classdef ctmrGUI < handle
                     try
                         set(obj.controls.edtSbjName, 'String',obj.settings.subject);
                     end
-                                       
+                    
+                    %delete tab if exist:
+                    try
+                        for t2 = length(obj.controls.tab):-1:1
+                            obj.controls.tab(t2).Parent    = [];
+                            obj.controls.tab(t2)           = [];
+                            obj.controls.edtGrid(t2)       = [];
+                            obj.controls.nextGrid(t2)      = [];
+                            obj.controls.previousGrid(t2)  = [];
+                            obj.controls.addGrid(t2)       = [];
+                            obj.controls.removeGrid(t2)    = [];
+                            obj.controls.txtGrid1(t2)      = [];
+                            obj.controls.txtGrid2(t2)      = [];
+                        end
+                    end
+                    
                     %add new tabs
                     for t = 1:length(obj.settings.Layout)
-                       
                         
-                        if ~isempty(obj.settings.Layout{t})
-                            %delete tabs if exist:
-                            try
-                                for t=length(obj.controls.tab):-1:1
-                                    obj.controls.tab(t).Parent    = [];
-                                    obj.controls.tab(t)           = [];
-                                    obj.controls.edtGrid(t)       = [];
-                                    obj.controls.nextGrid(t)      = [];
-                                    obj.controls.previousGrid(t)  = [];
-                                    obj.controls.addGrid(t)       = [];
-                                    obj.controls.removeGrid(t)    = [];
-                                    obj.controls.txtGrid1(t)      = [];
-                                    obj.controls.txtGrid2(t)      = [];
-                                end
-                            end
+                        if ~isempty(obj.settings.Layout{t})                           
                             
                             obj.controls.tab(t) = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(t)], 'HandleVisibility','off');
                             
@@ -456,37 +456,40 @@ classdef ctmrGUI < handle
                                 set(obj.controls.addTab,'enable','on');
                                 set(obj.controls.removeTab,'enable','off');
                             end
-                            
-                            %highlight last used tab (works for Tabnum==1 and Tabnum>1)
-                            set(obj.controls.layout, 'SelectedTab',obj.controls.tab(obj.settings.Tabnum));
-                            
-                            
-                            obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum};
-                            obj.settings.Gridnum = length(obj.settings.Grids);
-                            
-                            %display last grid settings
-                            set(obj.controls.edtGrid(obj.settings.Tabnum), 'enable', 'on');
-                            set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end}));
-                            
-                            if length(obj.settings.Grids)==1
-                                set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
-                                set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
-                                set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off');
-                                set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
-                                
-                            else %more than 1
-                                set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
-                                set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
-                                set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off'); %set to last grid, so no next grid
-                                set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
-                            end
-                            
-                            
-                            %log
-                            LogInfo(obj, 3);
-                            set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'    ')]});
-                            loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'    ')]);
                         end
+                    end
+                    
+                    if ~isempty(obj.settings.Layout{obj.settings.Tabnum})
+                        
+                        %highlight last used tab (works for Tabnum==1 and Tabnum>1)
+                        set(obj.controls.layout, 'SelectedTab',obj.controls.tab(obj.settings.Tabnum));
+                        
+                        
+                        obj.settings.Grids   = obj.settings.Layout{obj.settings.Tabnum};
+                        obj.settings.Gridnum = length(obj.settings.Grids);
+                        
+                        %display last grid settings
+                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'enable', 'on');
+                        set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end}));
+                        
+                        if length(obj.settings.Grids)==1
+                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off');
+                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
+                            
+                        else %more than 1
+                            set(obj.controls.removeGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.addGrid(obj.settings.Tabnum),'enable','on');
+                            set(obj.controls.nextGrid(obj.settings.Tabnum),'enable','off'); %set to last grid, so no next grid
+                            set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
+                        end
+                        
+                        %log
+                        LogInfo(obj, 3);
+                        set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'    ')]});
+                        loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'    ')]);
+                        
                     end
                     
                     %set method
@@ -795,7 +798,8 @@ classdef ctmrGUI < handle
             
             %set writing permissions to all files created with alice for
             %group.
-            L = dir('ALICE');
+            cd(obj.settings.currdir);
+            L = dir('../ALICE');
             if ~isempty(L)
                 listing = dir('**/*');
                 list = [{listing.folder}' {listing.name}'];

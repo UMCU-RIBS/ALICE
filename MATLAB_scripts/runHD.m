@@ -68,14 +68,20 @@ system(['rm ' subject '_' hemi '*']); %backward compatability
 % extract electrodes clusters using 3D clustering
 
 % extract CM using AFNI-SUMA plug-in.
-elecmatrix = importdata('./data/3Dclustering/electrode_CM.1D');
+CM = importdata('./data/3Dclustering/electrode_CM.1D');
 
 %remove repeated electrodes.
-[~, index] = unique(elecmatrix.data(:,4), 'last');
+[~, index] = unique(CM.data(:,4), 'last');
 
-elecmatrix = elecmatrix.data(index,[1:3]);
+CM = CM.data(index,[1:4]);
 
-elecmatrix = [-elecmatrix(:,1:2) elecmatrix(:,3)];
+elecCoord = [-CM(:,1:2) CM(:,3)];
+
+elecNum    = CM(:,4);
+
+%check for empty rows and put NANs
+elecmatrix = nan(elecNum(end),3); % create empty array 
+elecmatrix(elecNum, :) = elecCoord;
 
 save([mypath 'CM_' hemi '_electrodes_sorted_all.mat'],'elecmatrix');
 

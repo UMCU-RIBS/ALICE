@@ -1,15 +1,32 @@
    
     ALICE 
-  version 7.2
+  version 7.3
 
 Date:   07 September 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
+
 --------- Info log: -----------------------------------------------------------
+
+[ v7.3 10-09-2020 ]
+
+_____Bug fix___________________________________________________________________
++ set permissions to ALICE folder when closing ALICE. Do cd('ALICE') before setting permissions
++ fix indexing of HD grid electrodes in projection script.
++ loading tabs: delete tabs before settings them ups
++ runHD.m: added code to put nan in elecmatrix after loading coordinate files.
+
+
+
+
 [ v7.2 07-09-2020]
+
 _____Bug fix___________________________________________________________________
 + locate directory button didn't load empty layout tab/paths
+
+
+
 
 [ V7.1 27-07-2020]
 
@@ -20,8 +37,9 @@ _____Minor update______________________________________________________________
 + added information in documentation about layouts (version 21-07-2020).
 
 
-[ v7 21-05-2020 ]
 
+
+[ v7 21-05-2020 ]
 
 _____Major updates_____________________________________________________________
 
@@ -33,8 +51,6 @@ _____Major updates_____________________________________________________________
     --> only works for matlab version more recent than (and including) 2019a.
 + changed grid settings input in step 3: allows for (max) 3 layouts (using tabs) and to navigate between grids/tabs.
 + output directories changed, now: /results > method > hemisphere > intermidiate_results & /pictures/.
-
-
 
 ____Minor updates______________________________________________________________
 
