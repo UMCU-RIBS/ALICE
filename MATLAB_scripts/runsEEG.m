@@ -117,7 +117,7 @@ frames = java.awt.Frame.getFrames();
 frames(end).setAlwaysOnTop(1);
 
 load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
-gridLabels = num2cell(elecmatrix(:,1));
+gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
 elecmatrix = elecmatrix*0;
 
 for g=1:size(obj.settings.Grids,2)

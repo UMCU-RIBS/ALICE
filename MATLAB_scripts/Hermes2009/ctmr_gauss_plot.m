@@ -1,4 +1,4 @@
-function ctmr_gauss_plot(cortex,electrodes,weights,facealpha)
+function ctmr_gauss_plot(cortex,electrodes,weights,varargin)
 % function [electrodes]=ctmr_gauss_plot(cortex,electrodes,weights)
 % projects electrode locations onto their cortical spots in the
 % left hemisphere and plots about them using a gaussian kernel
@@ -25,7 +25,11 @@ function ctmr_gauss_plot(cortex,electrodes,weights,facealpha)
 
 %   Version 1.1.0, released 26-11-2009
 
-
+if isempty(varargin{1})
+    facealpha = 1;
+else
+    facealpha = varargin{1};
+end
 
 %load in colormap
 load('loc_colormap')

@@ -136,12 +136,11 @@ f = waitbar(0.2,'Please wait...','windowstyle', 'modal');
 frames = java.awt.Frame.getFrames();
 frames(end).setAlwaysOnTop(1);
 
-
 system(['rm ./results/' subject '_' hemi '_singleGrid*']);
 
 load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
+gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
 elecmatrix = elecmatrix*0;
-gridLabels = num2cell(elecmatrix(:,1));
 
 % electrodes2surf(subject,localnorm index,do not project electrodes closer than 3 mm to surface)
 

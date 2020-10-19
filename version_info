@@ -1,13 +1,22 @@
    
     ALICE 
-  version 7.3
+  version 7.4
 
-Date:   07 September 2020
+Date:   19 October 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 
 --------- Info log: -----------------------------------------------------------
+
+[ v7.4 19-09-2020 ]
+
+_____Bug fix___________________________________________________________________
++ set varargin parameter in ctmr_gauss_plot for 'facealpha'.
++ fix NAN label for empty channels in funciton runXXX.m
+
+
+
 
 [ v7.3 10-09-2020 ]
 
