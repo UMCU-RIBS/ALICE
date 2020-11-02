@@ -415,7 +415,7 @@ classdef ctmrGUI < handle
                     %add new tabs
                     for t = 1:length(obj.settings.Layout)
                         
-                        if ~isempty(obj.settings.Layout{t})                           
+                        if ~isempty(obj.settings.Layout{t}) || t==1                          
                             
                             obj.controls.tab(t) = uitab( obj.controls.layout, 'Title', ['Layout ' num2str(t)], 'HandleVisibility','off');
                             

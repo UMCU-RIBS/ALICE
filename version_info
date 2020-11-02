@@ -1,13 +1,21 @@
    
     ALICE 
-  version 7.4
+  version 7.5
 
-Date:   19 October 2020
+Date:   02 November 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 
 --------- Info log: -----------------------------------------------------------
+
+[ v7.5 02-10-2020 ]
+
+_____Bug fix___________________________________________________________________
++ enable tabs when 'locate directory' with layout empty.
+
+
+
 
 [ v7.4 19-09-2020 ]
 
