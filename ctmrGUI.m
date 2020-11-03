@@ -44,7 +44,7 @@ classdef ctmrGUI < handle
             obj.settings.Grids   = [];
             obj.settings.Gridnum = 0;
             
-            %current numeber lines in action log
+            %current number lines in action log
             obj.settings.curr_num_lines = 0;
             
             %by default do not save nii files
@@ -798,14 +798,16 @@ classdef ctmrGUI < handle
             
             %set writing permissions to all files created with alice for
             %group.
-            cd(obj.settings.currdir);
-            L = dir('../ALICE');
-            if ~isempty(L)
-                listing = dir('**/*');
-                list = [{listing.folder}' {listing.name}'];
-                for k=1:length(list)
-                    try
-                        fileattrib([list{k,1} '/' list{k,2}],'+w','g');
+            if isfield(obj.settings,'currdir')
+                cd(obj.settings.currdir);
+                L = dir('../ALICE');
+                if ~isempty(L)
+                    listing = dir('**/*');
+                    list = [{listing.folder}' {listing.name}'];
+                    for k=1:length(list)
+                        try
+                            fileattrib([list{k,1} '/' list{k,2}],'+w','g');
+                        end
                     end
                 end
             end

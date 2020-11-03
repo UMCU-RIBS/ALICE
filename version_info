@@ -1,13 +1,21 @@
    
     ALICE 
-  version 7.5
+  version 7.6
 
-Date:   02 November 2020
+Date:   03 November 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 
 --------- Info log: -----------------------------------------------------------
+
+[ v7.6 03-10-2020 ]
+
+_____Bug fix___________________________________________________________________
++ remove error when trying to close ALICE without creating/locating directory
+
+
+
 
 [ v7.5 02-10-2020 ]
 
