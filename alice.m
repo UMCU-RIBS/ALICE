@@ -9,17 +9,15 @@
 %%%% Set paths:
 close all; clearvars; clc;
 
-thisDirectory = pwd;
-
 disp('                                 ');
 disp('  ****** Welcome to ALICE ****** ');
-disp('    Version 7.6 (November 2020)  ');
-disp('   A UMCU and NIH collaboration. ')
+disp('    Version 7.7 (November 2020)  ');
+disp('   A UMCU and NIH collaboration. ');
 disp('                                 ');
 
 %Check dependencies:
 spmpath = which('spm');
-system(['afni -help > afnipath.txt']);
+system('afni -help > afnipath.txt');
 
 f = fopen('afnipath.txt');
 S = fscanf(f,'%s');
@@ -33,10 +31,11 @@ elseif isempty(S)
 else
     
     delete('afnipath.txt');
+    clear f S spmpath ans;
     
     %%%% Run program:
     gui = ctmrGUI;
-    
+
 end
 
 

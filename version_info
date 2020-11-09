@@ -1,15 +1,22 @@
    
     ALICE 
-  version 7.6
+  version 7.7
 
-Date:   03 November 2020
+Date:   09 November 2020
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
 
 
 --------- Info log: -----------------------------------------------------------
+[ v7.7 09-11-2020 ]
 
-[ v7.6 03-10-2020 ]
+_____Bug fix___________________________________________________________________
++ added ; after disp in alice.m
+
+
+
+
+[ v7.6 03-11-2020 ]
 
 _____Bug fix___________________________________________________________________
 + remove error when trying to close ALICE without creating/locating directory
@@ -17,7 +24,7 @@ _____Bug fix___________________________________________________________________
 
 
 
-[ v7.5 02-10-2020 ]
+[ v7.5 02-11-2020 ]
 
 _____Bug fix___________________________________________________________________
 + enable tabs when 'locate directory' with layout empty.
