@@ -131,7 +131,7 @@ for g=1:size(obj.settings.Grids,2)
     
     grids = obj.settings.Grids{g};
     %find comas:
-    comas = strfind(grids,',');
+    comas = strfind(grids,';');
        
     %extract electrode number
     gridEls   = str2num(grids(comas(1)+1:comas(2)-1));

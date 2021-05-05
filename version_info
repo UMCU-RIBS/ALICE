@@ -1,10 +1,22 @@
    
     ALICE 
-  version 7.7
+  version 7.8
 
-Date:   09 November 2020
+Date:   05 May 2021
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+--------- Info log: -----------------------------------------------------------
+[ v7.8 05-05-2021 ]
+
+_____Bug fix___________________________________________________________________
++ it can now delete the grid select and not just the last one 
++ grid settings add to the text entry on the interface are now separated by ; instead of
+, to avoid confusion with electrodes sleected inside [ ].
++ fix bug of disabled previousGrid button when moving forward on the grids list
+
+
 
 
 --------- Info log: -----------------------------------------------------------

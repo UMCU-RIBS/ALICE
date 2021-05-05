@@ -19,7 +19,7 @@ classdef ctmrGUI < handle
             obj.alice_version = 7.3;
             
             %number lines in action log.
-            obj.settings.NUM_LINES = 9;
+            obj.settings.NUM_LINES = 8;
             
             %no files loaded.
             obj.settings.loaded = [0 0 0];
@@ -262,12 +262,12 @@ classdef ctmrGUI < handle
             obj.controls.txtGrid1(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'text', 'Position', [10 93 230 20], ...
                 'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
             %text box
-            obj.controls.txtGrid2(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'text', 'Position', [10 53 230 40], ...
-                'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+            obj.controls.txtGrid2(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'text', 'Position', [10 53 260 45], ...
+                'FontSize', 9, 'string', {'(label; ch#; dim1; dim2) ; = semi-colon'} , 'HorizontalAlignment', 'left','enable','inactive');
             
             %edit text box
             obj.controls.edtGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'edit', 'Position', [10 35 260 36], ...
-                'FontSize', 10, 'string','e.g.: C, [1 3:32], 4, 8' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+                'FontSize', 10, 'string','e.g.: C; [1 3:32]; 4; 8' , 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
             
             % Add grid
             obj.controls.addGrid(1) = uicontrol( 'Parent', obj.controls.tab(1), 'Style', 'pushbutton', 'Position', [120 7 22 22], ...
@@ -425,8 +425,8 @@ classdef ctmrGUI < handle
                             obj.controls.txtGrid1(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 93 230 20], ...
                                 'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
                             %text box
-                            obj.controls.txtGrid2(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 53 230 40], ...
-                                'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                            obj.controls.txtGrid2(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'text', 'Position', [10 53 260 45], ...
+                                'FontSize', 9, 'string', {'(label; ch#; dim1; dim2) ; = semi-colon'} , 'HorizontalAlignment', 'left','enable','inactive');
                             
                             %edit text box
                             obj.controls.edtGrid(t) = uicontrol( 'Parent', obj.controls.tab(t), 'Style', 'edit', 'Position', [10 35 260 36], ...
@@ -779,9 +779,13 @@ classdef ctmrGUI < handle
         function LogInfo( obj, offset )
             
             obj.settings.str = get(obj.controls.txtLog, 'string');
-            if length(obj.settings.str) > obj.settings.NUM_LINES
+            long_sentences   = sum(cellfun(@length, obj.settings.str)>160);
+            long_sentences   = long_sentences + sum(cellfun(@length, obj.settings.str)>2*160);
+            
+            if length(obj.settings.str)+long_sentences > obj.settings.NUM_LINES
+               
                 try
-                    obj.settings.str = obj.settings.str( (end - (obj.settings.NUM_LINES-offset)) :end);
+                    obj.settings.str = obj.settings.str( (end - (obj.settings.NUM_LINES-offset-long_sentences-1)) :end);
                 catch
                     obj.settings.str = obj.settings.str(offset+1:end);
                 end
@@ -1296,8 +1300,8 @@ classdef ctmrGUI < handle
                     obj.controls.txtGrid1(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'text', 'Position', [10 93 230 20], ...
                         'FontSize', 10, 'string', {'Grid settings:'} , 'FontWeight', 'bold', 'HorizontalAlignment', 'left','enable','inactive');
                     %text box
-                    obj.controls.txtGrid2(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'text', 'Position', [10 53 230 40], ...
-                        'FontSize', 8, 'string', {'(label, ch#, dim1, dim2)'} , 'HorizontalAlignment', 'left','enable','inactive');
+                    obj.controls.txtGrid2(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'text', 'Position', [10 53 260 45], ...
+                        'FontSize', 9, 'string', {'(label; ch#; dim1; dim2) ; = semi-colon'} , 'HorizontalAlignment', 'left','enable','inactive');
                     
                     %edit text box
                     obj.controls.edtGrid(obj.settings.Tabnum) = uicontrol( 'Parent', obj.controls.tab(obj.settings.Tabnum ), 'Style', 'edit', 'Position', [10 35 260 36], ...
@@ -1341,8 +1345,8 @@ classdef ctmrGUI < handle
             %update layout
             if ~isempty(obj.settings.Grids)
                 obj.settings.Layout{obj.settings.Tabnum} = obj.settings.Grids;
-                obj.settings.Grids   = [];
-                obj.settings.Gridnum = 0;
+                obj.settings.Grids                       = [];
+                obj.settings.Gridnum                     = 0;
             end
             
             %extract tabnum
@@ -1420,7 +1424,7 @@ classdef ctmrGUI < handle
             auxtab = auxtab.Title;
             obj.settings.Tabnum = str2double(auxtab(end));
             
-            if isempty(strtrim(auxGrid)) || strcmp(auxGrid,'    e.g.: C, [1 3:32], 4, 8')
+            if isempty(strtrim(auxGrid)) || strcmp(auxGrid,'    e.g.: C; [1 3:32]; 4; 8')
                 
                 set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
                 set(obj.controls.edtGrid(obj.settings.Tabnum), 'string', '  ');
@@ -1450,7 +1454,7 @@ classdef ctmrGUI < handle
                 save([obj.settings.currdir '/log_info/settings'], 'settings');
                 
                 %log
-                LogInfo(obj, 1);
+                LogInfo(obj,1);
                 set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{end}]});
                 loggingActions(obj.settings.currdir,3,[' > Grid ' num2str(gridnum) ' settings: ' obj.settings.Grids{end}]);
             end
@@ -1470,13 +1474,17 @@ classdef ctmrGUI < handle
                 auxtab = auxtab.Title;
                 obj.settings.Tabnum = str2double(auxtab(end));
                 
+                %if only one grid available
                 if length(obj.settings.Grids)==1
                     
-                    obj.settings.Gridnum = 0;
+                    obj.settings.Gridnum                     = 0;
+                    obj.settings.Grids                       = [];
+                    obj.settings.Layout{obj.settings.Tabnum} = obj.settings.Grids;
+                    
                     set(obj.controls.removeGrid(obj.settings.Tabnum), 'enable', 'off');
                     set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
                     set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'off');
-                    obj.settings.Grids = obj.settings.Grids(1:end-1);
+                    
                     %log
                     LogInfo(obj, 1);
                     set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> All grid settings have been removed.']});
@@ -1484,19 +1492,39 @@ classdef ctmrGUI < handle
                     set(obj.controls.edtGrid(obj.settings.Tabnum), 'string', ' ');
                     set(obj.controls.addTab, 'enable','off');
                     
-                else
+                else %multiple grids available: delete the currently selected one                   
+
+                    auxGrid                                  = obj.settings.Grids(obj.settings.Gridnum);
+                    obj.settings.Grids(obj.settings.Gridnum) = []; %shifted all grids to left
+                    obj.settings.Layout{obj.settings.Tabnum} = obj.settings.Grids;
                     
-                    obj.settings.Gridnum = obj.settings.Gridnum - 1;
-                    obj.settings.Grids = obj.settings.Grids(1:end-1);
+                    %if last grid then update gridnum to last
+                    if obj.settings.Gridnum > length(obj.settings.Grids)
+                        obj.settings.Gridnum = length(obj.settings.Grids);
+                    end
                     
-                    set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{end})); %set to last settings by default
-                    set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
-                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'on');
+                    %set to last settings by default
+                    set(obj.controls.edtGrid(obj.settings.Tabnum), 'String', strtrim(obj.settings.Grids{obj.settings.Gridnum})); 
+                    
+                    %update next/previousGrid buttons
+                    if obj.settings.Gridnum == length(obj.settings.Grids) && obj.settings.Gridnum > 1
+                        set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                        set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'on');
+                    elseif obj.settings.Gridnum > 1
+                        set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'on');
+                        set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'on');
+                    elseif obj.settings.Gridnum == 1 && length(obj.settings.Grids) > obj.settings.Gridnum
+                        set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'on');
+                        set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'off');
+                    else
+                        set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable', 'off');
+                        set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable', 'off');
+                    end
                     
                     %log
-                    LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Current grid settings: ' strjoin(obj.settings.Grids,'   ')]});
-                    loggingActions(obj.settings.currdir,3,[' > Current grid settings: ' strjoin(obj.settings.Grids,'   ')]);
+                    LogInfo(obj,1+floor(length(obj.settings.Grids)/4));
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> Grid "' auxGrid{1} '" removed. Current grid settings: ' strjoin(obj.settings.Grids,'   ')]});
+                    loggingActions(obj.settings.currdir,3,[' > Grid "' auxGrid{1} '" removed. Current grid settings: ' strjoin(obj.settings.Grids,'   ')]);
                 end
             end
         end
@@ -1513,13 +1541,13 @@ classdef ctmrGUI < handle
                 auxtab = auxtab.Title;
                 obj.settings.Tabnum = str2double(auxtab(end));
                 
-                if length(obj.settings.Grids)>1
+                if length(obj.settings.Grids) > 1
                     set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','on');
                 else
                     set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','off');
                 end
                 
-                if obj.settings.Gridnum==1
+                if obj.settings.Gridnum == 1
                     set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','off');
                 else
                     set(obj.controls.previousGrid(obj.settings.Tabnum),'enable','on');
@@ -1546,7 +1574,13 @@ classdef ctmrGUI < handle
             obj.settings.Gridnum = obj.settings.Gridnum + 1;
             set(obj.controls.edtGrid(obj.settings.Tabnum),'string', strtrim(obj.settings.Grids{obj.settings.Gridnum}));
             
-            if obj.settings.Gridnum==length(obj.settings.Grids)
+            if length(obj.settings.Grids) > 1
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable','on');
+                else
+                    set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable','off');
+            end
+                            
+            if obj.settings.Gridnum == length(obj.settings.Grids)
                 set(obj.controls.previousGrid(obj.settings.Tabnum), 'enable','on');
                 set(obj.controls.nextGrid(obj.settings.Tabnum), 'enable','off');
             end
