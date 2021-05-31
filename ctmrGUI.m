@@ -1661,7 +1661,7 @@ classdef ctmrGUI < handle
             %check if grid settings were well input
             for g=1:size(obj.settings.Grids,2)
                 grid = obj.settings.Grids{g};
-                comas = strfind(grid,',');
+                comas = strfind(grid,';');
                 if ~contains(grid(comas(1)+1:comas(2)-1), ':')
                     disp(['>! WARNING: Please define electrode order with [ ] and : symbols, e.g. [1:32]. ']);
                     %log
