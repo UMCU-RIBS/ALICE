@@ -1,5 +1,5 @@
-mypath  = '/Fridge/bci/data/14-420_adults/veere/analysed/ALICE/results/';   %path fo ALICE/results folder
-subject = 'veere'; %subject code name
+mypath  = '.../ALICE/results/';   %path fo ALICE/results folder
+subject = 'name'; %subject code name
 hemi    = 'L';    %implanted hemisphere (L, R or L&R)
 
 % load electrodes on surface
