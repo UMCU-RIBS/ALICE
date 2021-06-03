@@ -242,13 +242,14 @@ waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 % save all projected electrode locaions in a .mat file
 save([mypath subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix');
 
-% save projected coordinatinates in a txt file
-cell_with_coord = [gridLabels num2cell(round(elecmatrix,4))];
+% save projected coordinatinates in a tsv file
+cell_with_coord = [{'name', 'x', 'y', 'z', 'size'}; gridLabels num2cell(round(elecmatrix,4)) repmat({'n/a'},size(gridLabels))];
 
 try
     writecell(cell_with_coord,[mypath(1:end-21) subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.txt'],'Delimiter','tab');
+    movefile([mypath(1:end-21) subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.txt'], [mypath(1:end-21) subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.tsv']);
 catch
-    disp('WARNING: Unable to save coordinates in txt file. Please use more recent version of Matlab (> 2019a)');
+    disp('WARNING: Unable to save coordinates in tsv file. Please use more recent version of Matlab (> 2019a)');
 end
 
 % make a NIFTI image with all projected electrodes

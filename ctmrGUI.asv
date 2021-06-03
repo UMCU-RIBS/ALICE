@@ -1662,14 +1662,8 @@ classdef ctmrGUI < handle
             for g=1:size(obj.settings.Grids,2)
                 grid = obj.settings.Grids{g};
                 comas = strfind(grid,';');
-                if isempty(comas)
-                    disp(['>! WARNING: Please separate arguments with ; ']);
-                    %log
-                    LogInfo(obj, 1);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},['>! WARNING: Please separate arguments with ; ']});
-                    loggingActions(obj.settings.currdir,3,[' >! WARNING: Please separate arguments with ;  ']);
-                    return;
-                elseif ~contains(grid(comas(1)+1:comas(2)-1), ':')
+                
+                if ~contains(grid(comas(1)+1:comas(2)-1), ':')
                     disp(['>! WARNING: Please define electrode order with [ ] and : symbols, e.g. [1:32]. ']);
                     %log
                     LogInfo(obj, 1);

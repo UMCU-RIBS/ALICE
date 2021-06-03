@@ -252,13 +252,17 @@ save([mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface'], 'tr
 
 
 %% Save coordinates in txt file
-cell_with_coord = [gridLabels num2cell(round(trielectrodes,4))];
+
+% save projected coordinatinates in a tsv file
+cell_with_coord = [{'name', 'x', 'y', 'z', 'size'}; gridLabels num2cell(round(trielectrodes,4)) repmat({'n/a'},size(gridLabels))];
 
 try
     writecell(cell_with_coord,[mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface.txt'],'Delimiter','tab');
+    movefile([mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface.txt'], [mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface.tsv']);
 catch
-    disp('WARNING: Unable to save coordinates in txt file. Please use more recent version of Matlab (> 2019a)');
+    disp('WARNING: Unable to save coordinates in tsv file. Please use more recent version of Matlab (> 2019a)');
 end
+
 
 %% Plotting
 load([mypath subject '_' hemi '_neuralAct_data_to_plot']);
