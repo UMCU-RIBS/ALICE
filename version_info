@@ -1,10 +1,29 @@
    
     ALICE 
-  version 7.8
+  version 7.9
 
-Date:   05 May 2021
+Date:   7 September 2022
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+
+--------- Info log: -----------------------------------------------------------
+[ v7.9 07-09-2022 ]
+
+_____Bug fix/improvements_______________________________________________________
+Note: many of the improvements and new features were suggestions from Julia Berezutskaya, as she uses ALICE the most.
+She suggested to move from channel indices to channel labels, and was agreed in the group.
++ selects cluster using labels. the indices inside electrode_CM.1D are indices of the labels file. 
++ remove the grid settings 'indices'. electrodes are identified from labels file.
++ runHermes, runHD and runsEEG were adjusted to read labels and save labels in txt/tsv output
++ added permissions to folder recursively via the terminal (unix) because sometimes some files were not sorrectly.
++ ALICE version added to log files
++ added errordialog for when electrode labels are not input before electrode selection or visualization or for previous versions.
+When running new ALICE with old output folder, the user needs to input a electrode_label txt file.
++ for each tab there is a hemisphere and method attached.
++ added option to interpolate sEEG electrodes when selecting only 1st and last in shaft.
+
 
 
 --------- Info log: -----------------------------------------------------------

@@ -63,6 +63,8 @@ system(['rm ' subject '_' hemi '*']); %backward compatability
 
 % extract CM using AFNI-SUMA plug-in.
 CM = importdata('./data/3Dclustering/electrode_CM.1D');
+%Note [MPB 10-08-2022]: the indices inside electrode_CM.1D are the indices
+%of the labels in electrode_labels.txt
 
 %remove repeated electrodes.
 [~, index] = unique(CM.data(:,4), 'last');
@@ -120,33 +122,68 @@ load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
 gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
 elecmatrix = elecmatrix*0;
 
+%extract electrode numbers
+if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
+    errordlg('Please enter *.txt file with electrode labels in Step 2!');
+    close(f);
+    return;
+else
+    labels = readcell(obj.settings.Labels);
+end
+
 for g=1:size(obj.settings.Grids,2)
     
-    grid = obj.settings.Grids{g};
+    grid       = obj.settings.Grids{g};
     %find comas:
-    comas = strfind(grid,';');
+    comas      = strfind(grid,';');
        
-    %extract electrode number
-    gridEls   = str2num(grid(comas(1)+1:comas(2)-1));
-    %extract electrodes coordinates
-    elecmatrix(gridEls,:) = coord_al_anatSPM(gridEls,:);
-     
-    %extract label and remove spaces
-    gridLabel = grid(1:comas(1)-1);
-    gridLabel = gridLabel((~isspace(gridLabel)));
-    gridLabels(gridEls,1) = cellstr(repmat(gridLabel,length(gridEls),1));
+    gridLabels = labels;
+    gridEls    = find(contains(labels, strtrim(grid(1:comas(1)-1))));
+
+    % new method: interpolate electrodes between first and last of the shaft
+    if sum(isnan(coord_al_anatSPM(gridEls)))>0
+        firstEl = coord_al_anatSPM(gridEls(1),:);
+        lastEl  = coord_al_anatSPM(gridEls(end),:);
+        if sum(isnan(firstEl))>0 || sum(isnan(lastEl))>0
+            errordlg('Either the first or last electrode coordinate is missing. Please select again in Step 2.');
+            return;
+        end
+
+        %interpolate coordinates in between
+        numEls    = numel(gridEls);
+        numPoints = numEls - 2;
+        px = nan(numPoints,1);
+        py = nan(numPoints,1);
+        pz = nan(numPoints,1);
+
+        for i=1:numPoints
+
+            px(i) = (firstEl(1)*i + lastEl(1)*(numPoints-i+1)) / (numPoints+1);
+            py(i) = (firstEl(2)*i + lastEl(2)*(numPoints-i+1)) / (numPoints+1);
+            pz(i) = (firstEl(3)*i + lastEl(3)*(numPoints-i+1)) / (numPoints+1);
+
+        end
+
+        interpEls             = flipud([lastEl; [px py pz]; firstEl]);
+        elecmatrix(gridEls,:) = interpEls;
     
+    else 
+        %use all selected electrodes
+        elecmatrix(gridEls,:) = coord_al_anatSPM(gridEls,:);
+    end
+       
 end
 
 %convert zero coordinates to nans:
 [~, index] = ismember(elecmatrix, [0 0 0], 'rows');
 if ~isempty(index)
     elecmatrix(logical(index),:) = nan;
-    gridLabels(logical(index),:) = {'NaN'};
 end
-%and remove all nans after last electrode:
-elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:end,:) = [];
-gridLabels(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:end,:) = [];
+%and add all nans after last electrode:
+elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:length(gridLabels),:) = nan;
+
+waitbar(0.3,f,'Please wait...','windowstyle', 'modal');
+
 
 %% 6) combine electrode files into one
 
@@ -231,7 +268,7 @@ pause(3);
 display_view = [90 90];
 loc_view(display_view(1), display_view(2));
 pause(3);
-saveas(currentfig,['./pictures/' subject '_' hemi '_topview.png']);
+saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_topview.png']);
 
 waitbar(1,f,'Please wait...','windowstyle', 'modal');
 

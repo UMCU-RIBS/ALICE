@@ -1,4 +1,4 @@
-%% ALICE pipeline
+%% ALICE
 % MP Branco et al. 2017
 %
 % (C) Mariana P. Branco, 
@@ -8,11 +8,15 @@
 
 %%%% Set paths:
 close all; clearvars; clc;
+global ALICE
+
+ALICE.version = 7.9;
+ALICE.date    = ' (September 2022)';
 
 disp('                                 ');
 disp('  ****** Welcome to ALICE ****** ');
-disp('    Version 7.7 (November 2020)  ');
-disp('   A UMCU and NIH collaboration. ');
+disp(['      Version ' num2str(ALICE.version)  ALICE.date]);
+disp('   A UMCU and NIH collaboration ');
 disp('                                 ');
 
 %Check dependencies:

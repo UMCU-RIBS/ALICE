@@ -4,6 +4,7 @@ function [] = loggingActions(currdir,stepNumber, ActionString)
 %
 % (C) MP Branco, jan2017
 %
+global ALICE
 
 fID = fopen([currdir 'log_info/Step' num2str(stepNumber) '_log.txt']);
 
@@ -12,6 +13,7 @@ if fID == -1
     fID = fopen([currdir 'log_info/Step' num2str(stepNumber) '_log.txt'], 'a');
     % give it a title
     fprintf(fID, '\nAction log of ALICE\n\n');
+    fprintf(fID, 'Version %f %s', ALICE.version, ALICE.date);
     fprintf(fID, '---------------------------------------------------------\n\n');
 else
     fID = fopen([currdir 'log_info/Step' num2str(stepNumber) '_log.txt'], 'a');

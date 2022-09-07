@@ -1,20 +1,20 @@
 function [status] = runHD(obj)
-%     This function uses freesurfer surface with electrode position extracted from 
+%     This function uses freesurfer surface with electrode position extracted from
 %     high res CT 3dclusters. This function uses NeuralAct toolbox to
 %     display the grid on the surface and assumes small brain shift.
 %
 %     Copyright (C) 2020  MP Branco. UMC Utrecht
-% 
+%
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
 %     the Free Software Foundation, either version 3 of the License, or
 %     (at your option) any later version.
-% 
+%
 %     This program is distributed in the hope that it will be useful,
 %     but WITHOUT ANY WARRANTY; without even the implied warranty of
 %     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %     GNU General Public License for more details.
-% 
+%
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -26,7 +26,7 @@ status = 1;
 subject = obj.settings.subject;
 
 %set hemisphere
-hemisphere = obj.settings.Hemisphere;
+hemisphere = obj.settings.Hemisphere{obj.settings.Tabnum};
 if strcmp(hemisphere, 'Left')
     hemi = 'L';
 elseif strcmp(hemisphere, 'Right')
@@ -69,6 +69,8 @@ system(['rm ' subject '_' hemi '*']); %backward compatability
 
 % extract CM using AFNI-SUMA plug-in.
 CM = importdata('./data/3Dclustering/electrode_CM.1D');
+%Note [MPB 10-08-2022]: the indices inside electrode_CM.1D are the indices
+%of the labels in electrode_labels.txt
 
 %remove repeated electrodes.
 [~, index] = unique(CM.data(:,4), 'last');
@@ -80,7 +82,7 @@ elecCoord = [-CM(:,1:2) CM(:,3)];
 elecNum    = CM(:,4);
 
 %check for empty rows and put NANs
-elecmatrix = nan(elecNum(end),3); % create empty array 
+elecmatrix = nan(elecNum(end),3); % create empty array
 elecmatrix(elecNum, :) = elecCoord;
 
 save([mypath 'CM_' hemi '_electrodes_sorted_all.mat'],'elecmatrix');
@@ -101,11 +103,11 @@ coord_al_anatSPM = [];
 coord_al_anat = [];
 
 for i = 1:size(elecmatrix,1)
-    
-  coord = [-elecmatrix(i,1:2) elecmatrix(i,3) 1];
-  coord_al_anat(i,:) = T3\coord' ; % = inv(T)*coord'
-  coord_al_anatSPM(i,:) = [-coord_al_anat(i,1:2) coord_al_anat(i,3)]; 
-  
+
+    coord = [-elecmatrix(i,1:2) elecmatrix(i,3) 1];
+    coord_al_anat(i,:) = T3\coord' ; % = inv(T)*coord'
+    coord_al_anatSPM(i,:) = [-coord_al_anat(i,1:2) coord_al_anat(i,3)];
+
 end
 
 % check result:
@@ -127,35 +129,39 @@ load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
 gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
 elecmatrix = zeros(size(elecmatrix));
 
+%extract electrode numbers
+if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
+    errordlg('Please enter *.txt file with electrode labels in Step 2!');
+    close(f);
+    return;
+else
+    labels = readcell(obj.settings.Labels);
+end
+
 for g=1:size(obj.settings.Grids,2)
-    
-    grids = obj.settings.Grids{g};
+
+    grid       = obj.settings.Grids{g};
     %find comas:
-    comas = strfind(grids,';');
-       
-    %extract electrode number
-    gridEls   = str2num(grids(comas(1)+1:comas(2)-1));
-    %extract electrode coordinates
+    comas      = strfind(grid,';');
+
+    gridLabels = labels;
+    gridEls    = find(contains(labels, strtrim(grid(1:comas(1)-1))));
     elecmatrix(gridEls,:) = coord_al_anatSPM(gridEls,:);
-    
-    %extract label and remove spaces
-    gridLabel = grids(1:comas(1)-1);
-    gridLabel = gridLabel((~isspace(gridLabel)));
-    gridLabels(gridEls,1) = cellstr(repmat(gridLabel,length(gridEls),1));
-    
+
 end
 
 %convert zero coordinates to nans:
 [~, index] = ismember(elecmatrix, [0 0 0], 'rows');
 if ~isempty(index)
     elecmatrix(logical(index),:) = nan;
-    gridLabels(logical(index),:) = {'NaN'};
 end
-%and remove all nans because we are only interested in HD:
-gridLabels(isnan(elecmatrix(:,1))) = [];
-elecmatrix(isnan(elecmatrix(:,1)),:) = [];
+%and add all nans after last electrode:
+elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:length(gridLabels),:) = nan;
 
-%% combine electrode files into one 
+waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
+
+
+%% combine electrode files into one
 
 % save all projected electrode locaions in a .mat file
 save([mypath subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecmatrix');
@@ -163,10 +169,10 @@ save([mypath subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecmatrix');
 
 % make a NIFTI image with all projected electrodes
 if isfield(obj.settings,'saveNii') && obj.settings.saveNii == 1
-    
+
     [output,~,~,outputStruct]=...
         position2reslicedImage2(elecmatrix,anatomy_path);
-    
+
     for filenummer=1:100
         outputStruct.fname=[mypath subject '_' hemi '_electrodes_NOT_PROJECTED' int2str(filenummer) '.img' ];
         if ~exist(outputStruct.fname,'file')>0
@@ -182,7 +188,7 @@ end
 
 anatomy_path = './data/FreeSurfer/t1_class.nii';
 
-hemisphere = obj.settings.Hemisphere;
+hemisphere = obj.settings.Hemisphere{obj.settings.Tabnum};
 if strcmp(hemisphere, 'Left')
     % from freesurfer: in mrdata/.../freesurfer/mri
     gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_L'],0.5,[15 3],'l',mypath);
@@ -190,7 +196,7 @@ if strcmp(hemisphere, 'Left')
     % load cortex
     load([mypath subject '_L_cortex.mat']);
     save([mypath(1:end-21) subject '_L_cortex.mat'],'cortex');
-    
+
 elseif strcmp(hemisphere, 'Right')
     % from freesurfer: in mrdata/.../freesurfer/mri
     gen_cortex_click_from_FreeSurfer(anatomy_path,[subject '_R'],0.5,[15 3],'r',mypath);
@@ -280,7 +286,7 @@ else
 end
 
 viewstruct.lightingtype     = 'gouraud';
-cmapstruct.cmap             = colormap('Jet'); 
+cmapstruct.cmap             = colormap('Jet');
 if ishandle(2)
     close(gcf); %because colormap creates a figure but not in newer versions of matlab
 end
@@ -301,7 +307,7 @@ waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
 facealpha = 1;
 ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
 fg = gcf;
-%Add spheres electrodes
+%Add spheres electr        odes
 plotSpheres(subj.trielectrodes, 'b');
 loc_view(display_view(1), display_view(2)+30);
 pause(3);

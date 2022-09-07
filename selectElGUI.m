@@ -3,6 +3,7 @@ classdef selectElGUI < handle
         extraFig
         controls
         settings
+        labels
     end
     
     methods
@@ -13,7 +14,15 @@ classdef selectElGUI < handle
             obj.controls = varargin{2};
             
             obj.settings.electrode_i = 1;
-            
+           
+            if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
+                errordlg('Please enter *.txt file with electrode labels in Step 2!');
+                close(f);
+                return;
+            else
+                obj.labels = readcell(obj.settings.Labels);
+            end
+
             %get user input
             screenSize = get(0,'ScreenSize');
             width		= 500;
@@ -26,24 +35,31 @@ classdef selectElGUI < handle
             %button 1: select electrode
             obj.controls.btnSelectEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 290 150 50], ...
                 'String', 'Select electrode', 'Callback', @obj.btnSelectEl, 'FontSize', 11 , 'FontWeight', 'bold');
+            
             %button 2: select sphere
             obj.controls.btnSelectSphere = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 230 150 50 ], ...
                 'String', 'Set sphere', 'Callback', @obj.btnSelectSphere, 'FontSize', 11 , 'FontWeight', 'bold');
+            
             %edit box: goto electrode
             obj.controls.edtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'edit', 'Position', [125 185 60 30], ...
                 'FontSize', 11, 'string', {' '} ,'Callback', @obj.edtGotoEl,  'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+            
             %text box goto electrode
             obj.controls.txtGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [30 157 90 60], ...
                 'FontSize', 11, 'string', {'Go to electrode:'} , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
+            
             %button goto electrode
             obj.controls.btnGotoEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [190 185 30 30 ], ...
                 'String', '>>','Callback', @obj.edtGotoEl, 'FontSize', 11 , 'FontWeight', 'bold');
+            
             %text current electrode
-            obj.controls.txtCurrentEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [22 345 210 30], ...
-                'FontSize', 13, 'string', {'Select electrode: 1'} , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
+            obj.controls.txtCurrentEl = uicontrol( 'Parent', obj.extraFig, 'Style', 'text', 'Position', [45 335 223 35], ...
+                'FontSize', 13, 'string', ['Select: ' obj.labels{1}] , 'HorizontalAlignment', 'left','enable','inactive','FontWeight', 'bold');
+            
             %button delete cluster
             obj.controls.btnDeleteCluster = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 110 150 50 ], ...
                 'String', 'Delete Cluster', 'Callback', @obj.btnDeleteCluster, 'FontSize', 11 , 'FontWeight', 'bold', 'ForegroundColor', [0.7 0 0]);
+            
             %button 3: quit
             obj.controls.btnQuit = uicontrol( 'Parent', obj.extraFig, 'Style', 'pushbutton', 'Position', [50 30 150 50 ], ...
                 'String', 'Finished!', 'Callback', @obj.btnQuit, 'FontSize', 18 , 'FontWeight', 'bold', 'ForegroundColor', [0 0.6 0]);
@@ -67,16 +83,30 @@ classdef selectElGUI < handle
             electrode_i = obj.settings.electrode_i;
             system(['tcsh select_electrode.csh -electrode_i ' num2str(electrode_i) ' -afni_sphere "" ']);
             
-            obj.settings.electrode_i = obj.settings.electrode_i +1;
-            set(obj.controls.txtCurrentEl, 'String',['Select electrode: ' num2str(obj.settings.electrode_i)]);
-            
-            %log after select electrodes
-            str = get(obj.controls.txtLog, 'string');
-            if length(str)>=obj.settings.NUM_LINES
-                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-            end
-            set(obj.controls.txtLog, 'string',{str{:}, ['> Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']});
-            loggingActions(obj.settings.currdir,2,[' > Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']);
+            if obj.settings.electrode_i > length(obj.labels) %if list completed
+                obj.settings.electrode_i = obj.settings.electrode_i - 1;
+                set(obj.controls.txtCurrentEl, 'String','Select: complete!');
+
+                %log after select electrodes
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:}, '> Electrode list completed!'});
+                loggingActions(obj.settings.currdir,2,' > Electrode list completed!');
+
+            else
+                obj.settings.electrode_i = obj.settings.electrode_i + 1;
+                set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
+
+                %log after select electrodes
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:}, ['> Electrode ' obj.labels{obj.settings.electrode_i} ' selected.']});
+                loggingActions(obj.settings.currdir,2,[' > Electrode ' obj.labels{obj.settings.electrode_i} ' selected.']);
+            end            
             
         end
         
@@ -102,44 +132,61 @@ classdef selectElGUI < handle
             electrode_i = obj.settings.electrode_i;
             system(['tcsh select_electrode.csh -electrode_i ' num2str(electrode_i) ' -afni_sphere ' afni_sphere]);
             
-            obj.settings.electrode_i = obj.settings.electrode_i +1;
-            set(obj.controls.txtCurrentEl, 'String',['Select electrode: ' num2str(obj.settings.electrode_i)]);
             
-            %log after select electrodes
-            str = get(obj.controls.txtLog, 'string');
-            if length(str)>=obj.settings.NUM_LINES
-                str = str( (end - (obj.settings.NUM_LINES-1)) :end);
-            end
-            set(obj.controls.txtLog, 'string',{str{:}, ['> Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']});
-            loggingActions(obj.settings.currdir,2,[' > Electrode ' num2str(obj.settings.electrode_i-1) ' selected.']);
+            if obj.settings.electrode_i > length(obj.labels) %if list completed
+                obj.settings.electrode_i = obj.settings.electrode_i - 1;
+                set(obj.controls.txtCurrentEl, 'String','Select: complete!');
 
+                %log after select electrodes
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:}, '> Electrode list completed!'});
+                loggingActions(obj.settings.currdir,2,' > Electrode list completed!');
+
+            else
+                obj.settings.electrode_i = obj.settings.electrode_i + 1;
+                set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
+
+                %log after select electrodes
+                str = get(obj.controls.txtLog, 'string');
+                if length(str)>=obj.settings.NUM_LINES
+                    str = str( (end - (obj.settings.NUM_LINES-1)) :end);
+                end
+                set(obj.controls.txtLog, 'string',{str{:}, ['> Electrode ' obj.labels{obj.settings.electrode_i-1} ' selected.']});
+                loggingActions(obj.settings.currdir,2,[' > Electrode ' obj.labels{obj.settings.electrode_i-1} ' selected.']);
+            end
         end
         
         %Go to electrode #
         function edtGotoEl( obj, hObject, ~ )
             
-            str = get(obj.controls.edtGotoEl, 'string');
+            Labelstr = get(obj.controls.edtGotoEl, 'string');
             
-            if isinteger(uint8(str2num(str{1}))) && ~isempty(str2num(str{1}))
-                obj.settings.electrode_i = str2num(str{1});
-                set(obj.controls.txtCurrentEl, 'String',['Select electrode: ' num2str(obj.settings.electrode_i)]);
+            if  Labelstr~= " " && ~isempty(Labelstr) && ~isempty(find(contains(obj.labels,strtrim(Labelstr)) == 1))
+                
+                obj.settings.electrode_i = find(contains(obj.labels,strtrim(Labelstr)) == 1, 1,'first');
+                set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
                 
                 %log after select electrodes
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:}, ['> Go to electrode ' num2str(obj.settings.electrode_i) '.']});
-                loggingActions(obj.settings.currdir,2,[' > Go to electrode ' num2str(obj.settings.electrode_i) '.']);
+                set(obj.controls.txtLog, 'string',{str{:}, ['> Go to electrode ' obj.labels{obj.settings.electrode_i} '.']});
+                loggingActions(obj.settings.currdir,2,[' > Go to electrode ' obj.labels{obj.settings.electrode_i} '.']);
+            
             else
+                set(obj.controls.txtCurrentEl, 'String','Select: ...' );
                 set(obj.controls.edtGotoEl, 'String',[' ']);
                 %log after select electrodes
                 str = get(obj.controls.txtLog, 'string');
-                if length(str)>=obj.settings.NUM_LINES
+                if length(str) >= obj.settings.NUM_LINES
                     str = str( (end - (obj.settings.NUM_LINES-1)) :end);
                 end
-                set(obj.controls.txtLog, 'string',{str{:}, ['> ! ERROR: Invalid electrode number. Integer values only.']});
-                loggingActions(obj.settings.currdir,2,[' > ! ERROR: Invalid electrode number. Integer values only.']);
+                set(obj.controls.txtLog, 'string',{str{:}, ['> ! ERROR: Invalid electrode label.']});
+                loggingActions(obj.settings.currdir,2,[' > ! ERROR: Invalid electrode label.']);
             end
             
         end
