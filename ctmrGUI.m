@@ -730,6 +730,12 @@ classdef ctmrGUI < handle
             fwrite(fileID, num2str(Tmatrix2));
             fclose(fileID);
 
+            %log
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Open selected: CT already aligned.'});
+            loggingActions(obj.settings.currdir,1,' > Open selected: CT already aligned.');
+
+
         end
 
         function ExtractClusters ( obj )
@@ -949,7 +955,7 @@ classdef ctmrGUI < handle
                 %if mgz --> convert to nii
                 if strcmpi(FileName(end-2:end), 'mgz')
                     system(['mri_convert ' obj.settings.currdir 'data/MRI/' FileName ' ' obj.settings.currdir 'data/MRI/T1.nii']);
-                    FileName = 'T1.nii';
+                    FileName = [FileName(1:end-3) 'nii'];
                 end
 
                 obj.settings.MRI = [obj.settings.currdir 'data/MRI/' FileName];
