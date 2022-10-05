@@ -309,12 +309,12 @@ ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
 fg = gcf;
 %Add spheres electr        odes
 plotSpheres(subj.trielectrodes, 'b');
-loc_view(display_view(1), display_view(2)+30);
-pause(3);
+loc_view(display_view(1), display_view(2)+30); drawnow
+pause(5);
 
 saveas(fg,['./pictures/' subject '_HD_' hemi '.png']);
 
-pause(3);
+pause(5);
 waitbar(1,f,'Please wait...','windowstyle', 'modal');
 
 pause(5);

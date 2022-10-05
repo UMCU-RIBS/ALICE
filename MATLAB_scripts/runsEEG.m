@@ -247,34 +247,34 @@ currentfig = gcf;
 el_add(elecmatrix,'r',20);
 label_add(elecmatrix);
 display_view = [90 0];
-loc_view(display_view(1), display_view(2));
+loc_view(display_view(1), display_view(2));drawnow
 
 waitbar(0.4,f,'Please wait...','windowstyle', 'modal');
 
-pause(3);
+pause(5);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_rightview.png']);
 
 waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 
-pause(3);
+pause(5);
 display_view = [-90 0];
-loc_view(display_view(1), display_view(2));
+loc_view(display_view(1), display_view(2));drawnow
 pause(3);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_leftview.png']);
 
 waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
 
-pause(3);
+pause(5);
 display_view = [90 90];
-loc_view(display_view(1), display_view(2));
+loc_view(display_view(1), display_view(2)); drawnow
 pause(3);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_topview.png']);
 
 waitbar(1,f,'Please wait...','windowstyle', 'modal');
 
-pause(3);
+pause(35);
 display_view = [-90 45];
-loc_view(display_view(1), display_view(2));
+loc_view(display_view(1), display_view(2)); drawnow
 
 pause(5);
 close(f);

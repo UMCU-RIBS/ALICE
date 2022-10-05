@@ -320,21 +320,21 @@ fg = gcf;
 el_add(elecmatrix,'r',20);
 label_add(elecmatrix);
 
-loc_view(90, 0);
+loc_view(90, 0); drawnow
 waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 
 saveas(fg,['./pictures/' subject '_Hermes_' hemi '_rightview.png']);
-pause(3);
+pause(5);
 
 waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
 
 pause(6);
-loc_view(-90, 0);
+loc_view(-90, 0);drawnow
 saveas(fg,['./pictures/' subject '_Hermes_' hemi '_leftview.png']);
 
 
 pause(5);
-loc_view(display_view(1), display_view(2));
+loc_view(display_view(1), display_view(2));drawnow
 waitbar(1,f,'Please wait...','windowstyle', 'modal');
 
 pause(5);
