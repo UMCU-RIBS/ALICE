@@ -166,9 +166,9 @@ classdef selectElGUI < handle
             
             if  Labelstr~= " " && ~isempty(Labelstr) && ~isempty(find(contains(obj.labels,strtrim(Labelstr)) == 1))
                 
-                obj.settings.electrode_i = find(contains(obj.labels,strtrim(Labelstr)) == 1, 1,'first');
+                obj.settings.electrode_i = find(ismember(obj.labels, strtrim(Labelstr)));  
                 set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
-                
+                                
                 %log after select electrodes
                 str = get(obj.controls.txtLog, 'string');
                 if length(str)>=obj.settings.NUM_LINES

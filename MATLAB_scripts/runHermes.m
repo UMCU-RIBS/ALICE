@@ -187,8 +187,8 @@ for g=1:size(obj.settings.Grids,2)
     %find comas:
     comas      = strfind(grid,';');
 
-    gridEls    = find(contains(labels, strtrim(grid(1:comas(1)-1))));
     gridLabels = labels;
+    gridEls    = find(ismember(regexprep(labels,'\d+$',''), strtrim(grid(1:comas(1)-1))));
 
     %extract grid size
     gridSize   = str2num(grid(comas(1)+1:end));

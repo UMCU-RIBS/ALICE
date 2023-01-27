@@ -138,7 +138,7 @@ for g=1:size(obj.settings.Grids,2)
     comas      = strfind(grid,';');
        
     gridLabels = labels;
-    gridEls    = find(contains(labels, strtrim(grid(1:comas(1)-1))));
+    gridEls    = find(ismember(regexprep(labels,'\d+$',''), strtrim(grid(1:comas(1)-1))));
 
     % new method: interpolate electrodes between first and last of the shaft
     if sum(isnan(coord_al_anatSPM(gridEls)))>0

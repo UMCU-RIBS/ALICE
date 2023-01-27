@@ -1,10 +1,21 @@
    
     ALICE 
-  version 7.9
+  version 8.0
 
-Date:   7 September 2022
+Date:   27 January 2023
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+
+--------- Info log: -----------------------------------------------------------
+[ v8.0 27-01-2023 ]
+
+_____Bug fix/improvements_______________________________________________________
++ correct bug when selecting grids/shafts with similar names (e.g. TOL and OL).
+Using ismember() instead of contain() to find the whole label string instead of parts of string.
+
+
 
 
 

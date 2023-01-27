@@ -145,7 +145,8 @@ for g=1:size(obj.settings.Grids,2)
     comas      = strfind(grid,';');
 
     gridLabels = labels;
-    gridEls    = find(contains(labels, strtrim(grid(1:comas(1)-1))));
+    gridEls    = find(ismember(regexprep(labels,'\d+$',''), strtrim(grid(1:comas(1)-1))));
+    
     elecmatrix(gridEls,:) = coord_al_anatSPM(gridEls,:);
 
 end
