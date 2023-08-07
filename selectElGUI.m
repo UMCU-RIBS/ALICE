@@ -82,6 +82,7 @@ classdef selectElGUI < handle
             %for just return, advance to next entry
             electrode_i = obj.settings.electrode_i;
             system(['tcsh select_electrode.csh -electrode_i ' num2str(electrode_i) ' -afni_sphere "" ']);
+            obj.settings.electrode_i = obj.settings.electrode_i + 1;
             
             if obj.settings.electrode_i > length(obj.labels) %if list completed
                 obj.settings.electrode_i = obj.settings.electrode_i - 1;
@@ -96,7 +97,7 @@ classdef selectElGUI < handle
                 loggingActions(obj.settings.currdir,2,' > Electrode list completed!');
 
             else
-                obj.settings.electrode_i = obj.settings.electrode_i + 1;
+                
                 set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
 
                 %log after select electrodes
@@ -131,7 +132,7 @@ classdef selectElGUI < handle
             afni_sphere = 'A';
             electrode_i = obj.settings.electrode_i;
             system(['tcsh select_electrode.csh -electrode_i ' num2str(electrode_i) ' -afni_sphere ' afni_sphere]);
-            
+            obj.settings.electrode_i = obj.settings.electrode_i + 1;
             
             if obj.settings.electrode_i > length(obj.labels) %if list completed
                 obj.settings.electrode_i = obj.settings.electrode_i - 1;
@@ -146,7 +147,7 @@ classdef selectElGUI < handle
                 loggingActions(obj.settings.currdir,2,' > Electrode list completed!');
 
             else
-                obj.settings.electrode_i = obj.settings.electrode_i + 1;
+                
                 set(obj.controls.txtCurrentEl, 'String',['Select: ' obj.labels{obj.settings.electrode_i}]);
 
                 %log after select electrodes

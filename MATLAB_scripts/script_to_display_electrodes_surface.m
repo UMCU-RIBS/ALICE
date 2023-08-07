@@ -1,4 +1,4 @@
-mypath  = '.../ALICE/results/';   %path fo ALICE/results folder
+mypath  = '.../ALICE/results/method/hemisphere/';   %path of ALICE/results folder
 subject = 'name'; %subject code name
 hemi    = 'L';    %implanted hemisphere (L, R or L&R)
 

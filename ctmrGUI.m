@@ -1076,7 +1076,7 @@ classdef ctmrGUI < handle
                 disp('! WARNING: CT scan not selected.');
                 %log
                 LogInfo(obj, 1);
-                set(obj.controls.txtLog, 'string',{obj.settigns.str{:},'>! WARNING: CT scan not selected.'});
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'>! WARNING: CT scan not selected.'});
                 loggingActions(obj.settings.currdir,1,' >! WARNING: CT scan not selected.');
                 loggingActions(obj.settings.currdir,2,' >! WARNING: CT scan not selected.');
             end
