@@ -1,10 +1,19 @@
    
     ALICE 
-  version 8.0
+  version 8.1
 
-Date:   27 January 2023
+Date:   11 September 2023
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+
+--------- Info log: -----------------------------------------------------------
+[ v8.1 11-09-2023 ]
+
+_____Bug fix/improvements_______________________________________________________
++ Added the original path of CT/MRI/FS files to the log files.
+
 
 
 

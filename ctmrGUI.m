@@ -950,6 +950,10 @@ classdef ctmrGUI < handle
                 if ~strcmpi(PathName,[obj.settings.currdir 'Data/MRI/'])
                     %copy file to Alice folder
                     copyfile([PathName FileName], [obj.settings.currdir 'data/MRI/' FileName ]);
+                    origdir = [PathName FileName];
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',origdir});
+                    loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' origdir]);
                 end
 
                 %if mgz --> convert to nii
@@ -967,13 +971,14 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtMRI, 'FontSize',10);
 
                 %log
+                
                 LogInfo(obj, 2);
                 try
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',['... ', obj.settings.MRI(end-125:end)]});
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan saved as: ',['... ', obj.settings.MRI(end-125:end)]});
                 catch
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan selected: ',[obj.settings.MRI(1:end)]});
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> MRI scan saved as: ',[obj.settings.MRI(1:end)]});
                 end
-                loggingActions(obj.settings.currdir,1,[' > MRI scan selected: ' obj.settings.MRI]);
+                loggingActions(obj.settings.currdir,1,[' > MRI scan saved as: ' obj.settings.MRI]);
 
             else
                 disp('! WARNING: MRI scan not selected.');
@@ -998,6 +1003,10 @@ classdef ctmrGUI < handle
                 if ~strcmpi(PathName,[obj.settings.currdir 'Data/FreeSurfer/'])
                     %Copy file to Alice folder
                     copyfile([PathName FileName], [obj.settings.currdir 'data/FreeSurfer/t1_class.nii']);
+                    origdir = [PathName FileName];
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', origdir});
+                    loggingActions(obj.settings.currdir,1,[' > FS segmentation selected: ' origdir]);
                 end
 
                 %if mgz --> convert to nii
@@ -1015,9 +1024,10 @@ classdef ctmrGUI < handle
                 set(obj.controls.txtFS, 'FontSize',10);
 
                 %log
+                
                 LogInfo(obj, 2);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation selected: ', obj.settings.FS});
-                loggingActions(obj.settings.currdir,1,[' > FS segmentation selected: ' obj.settings.FS]);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> FS segmentation saved as: ', obj.settings.FS});
+                loggingActions(obj.settings.currdir,1,[' > FS segmentation saved as: ' obj.settings.FS]);
             else
                 disp('! WARNING: FreeSurfer segmentation file not selected.');
                 %log
@@ -1040,6 +1050,10 @@ classdef ctmrGUI < handle
                 if ~strcmpi(PathName,[obj.settings.currdir 'Data/CT/'])
                     %rename CT to CT_highresRAI.nii
                     copyfile([PathName FileName], [obj.settings.currdir 'data/CT/CT_highresRAI.nii']);
+                    origdir = [PathName FileName];
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', origdir});
+                    loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' origdir]);
                 end
 
                 obj.settings.CT = [obj.settings.currdir 'data/CT/CT_highresRAI.nii'];
@@ -1047,9 +1061,8 @@ classdef ctmrGUI < handle
 
                 %log CT
                 LogInfo(obj, 2);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT scan selected: ', obj.settings.CT});
-                loggingActions(obj.settings.currdir,1,[' > CT scan selected: ' obj.settings.CT]);
-                loggingActions(obj.settings.currdir,2,[' > CT scan selected: ' obj.settings.CT]);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> CT saved as: ', obj.settings.CT});
+                loggingActions(obj.settings.currdir,1,[' > CT saved as: ' obj.settings.CT]);
 
                 %update text boxes
                 set(obj.controls.txtCT1, 'string',['...' obj.settings.CT(end-18:end)]);
@@ -1109,6 +1122,10 @@ classdef ctmrGUI < handle
                 else 
                     %Copy file to Alice folder
                     copyfile([PathName FileName], [obj.settings.currdir 'data/3Dclustering/electrode_labels.txt']);
+                    origdir = [PathName FileName];
+                    LogInfo(obj, 2);
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode labels selected: ', origdir});
+                    loggingActions(obj.settings.currdir,1,[' > Electrode labels selected: ' origdir]);
                 end
 
                 obj.settings.Labels = [obj.settings.currdir 'data/3Dclustering/electrode_labels.txt'];
@@ -1121,8 +1138,8 @@ classdef ctmrGUI < handle
 
                 %log
                 LogInfo(obj, 2);
-                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode labels selected: ', obj.settings.Labels});
-                loggingActions(obj.settings.currdir,1,[' > Electrode labels selected: ' obj.settings.Labels]);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},'> Electrode labels saved as: ', obj.settings.Labels});
+                loggingActions(obj.settings.currdir,1,[' > Electrode labels saved as: ' obj.settings.Labels]);
             else
                 disp('! WARNING: Electrode labels not selected.');
                 %log
