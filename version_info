@@ -1,10 +1,21 @@
    
     ALICE 
-  version 8.1
+  version 8.2
 
-Date:   11 September 2023
+Date:   12 December 2023
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+
+--------- Info log: -----------------------------------------------------------
+[ v8.2 14-12-2023 ]
+
+_____Bug fix/improvements_______________________________________________________
++ When HD is acquired in same file as clinical grids, there was an error for neuralact,
+due to nan in the channel list. This has been corrected.
++ Remove the pre-selected hemisphere when a new layout is created.
+
 
 
 

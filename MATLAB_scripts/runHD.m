@@ -226,7 +226,10 @@ save([mypath(1:end-21) subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecma
 %% NeuralAct for HD
 waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 
-subj.electrodes = elecmatrix;
+%remove nans from elecmatrix when HD is recorded in same file as clinical
+%electrodes
+HDch = elecmatrix(~isnan(elecmatrix(:,1)),:);
+subj.electrodes = HDch;
 
 %make the model coarser:
 % load cortex
@@ -253,7 +256,9 @@ subj.activations = zeros(size(elecmatrix,1),1);
 
 save([mypath subject '_' hemi '_neuralAct_data_to_plot'], 'subj', 'cortex', 'cortexcoarser', 'elecmatrix','hullcortex', 'vcontribs');
 
-trielectrodes = subj.trielectrodes;
+trielectrodes = elecmatrix;
+trielectrodes(~isnan(elecmatrix(:,1)),:) = subj.trielectrodes;
+
 % trielectrodes(3,3) = trielectrodes(3,3)-1; %correct one electrode of
 save([mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface'], 'trielectrodes');
 

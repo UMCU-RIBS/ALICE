@@ -10,8 +10,8 @@
 close all; clearvars; clc;
 global ALICE
 
-ALICE.version = 8.1;
-ALICE.date    = ' (September 2023)';
+ALICE.version = 8.2;
+ALICE.date    = ' (December 2023)';
 
 disp('                                 ');
 disp('  ****** Welcome to ALICE ****** ');

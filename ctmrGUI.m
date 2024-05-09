@@ -30,7 +30,7 @@ classdef ctmrGUI < handle
             obj.settings.R  = 3;
             obj.settings.IS = 1;
 
-            %mepty hemisphere:
+            %empty hemisphere:
             obj.settings.Hemisphere = cell(1,3);
 
             %empty method:
@@ -1274,11 +1274,13 @@ classdef ctmrGUI < handle
                 set(obj.controls.radiobtn3, 'Enable','on');
                 set(obj.controls.radiobtn4, 'Enable','on');
                 set(obj.controls.radiobtn6, 'Enable','on');
+                set(obj.controls.edtGrid4, 'Enable', 'on');
 
             elseif strcmp(obj.settings.Method{obj.settings.Tabnum},'Method HD')
                 set(obj.controls.radiobtn3, 'Enable','on');
                 set(obj.controls.radiobtn4, 'Enable','on');
                 set(obj.controls.radiobtn6, 'Enable','on');
+                set(obj.controls.edtGrid4, 'Enable', 'on');
 
             elseif strcmp(obj.settings.Method{obj.settings.Tabnum},'Method sEEG or depth')
                 set(obj.controls.radiobtn3, 'Value',0);
@@ -1489,7 +1491,12 @@ classdef ctmrGUI < handle
                     %empty grids
                     obj.settings.Grids   = [];
                     obj.settings.Gridnum = 0;
-
+                    %empty hemipshere
+                    obj.settings.Hemisphere = cell(1,3);
+                    obj.controls.radiobtn3.Value = 0;
+                    obj.controls.radiobtn5.Value = 0;
+                    obj.controls.radiobtn6.Value = 0;
+                    
                     %set remove tab button on
                     set(obj.controls.removeTab,'enable', 'on');
 
