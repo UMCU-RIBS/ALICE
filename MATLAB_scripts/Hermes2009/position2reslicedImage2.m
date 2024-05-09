@@ -144,18 +144,3 @@ for elec=1:length(els_ind)
     end
 end
 output=temp.electrode;
-% %% and save new data:
-% dataOut=data.Struct;
-% outputdir= spm_select(1,'dir','select output directory');
-% for filenummer=1:100
-%     outputnaam=strcat([outputdir 'selectedElectrodes ' int2str(filenummer)...
-%         '.img']);
-%     dataOut.fname=outputnaam;
-% 
-%     if ~exist(dataOut.fname,'file')>0
-%         disp(strcat(['saving ' outputnaam]));
-%         % save the data
-%         spm_write_vol(dataOut,temp.electrode);
-%         break
-%     end
-% end

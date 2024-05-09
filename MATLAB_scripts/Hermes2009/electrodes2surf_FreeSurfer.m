@@ -67,10 +67,6 @@ gs=([x y z]*data.gsStruct.mat(1:3,1:3)')+repmat(data.gsStruct.mat(1:3,4),1,lengt
 clear x y z;
 
 out_els=p_zoom(els,gs,index,checkdistance);
-% data.gs=[];
-% data.gsStruct=[];
-% data.gsName=[];
-% clear gs;
 
 disp('electrode projected, now putting back in image');
 
@@ -94,11 +90,6 @@ for filenummer=1:100
     dataOut.fname = outputnaam;
     
     if ~exist(dataOut.fname,'file')>0
-%         dataOut.fname = outputnaam;
-%         disp(strcat(['saving ' outputnaam]));
-%         % save the data
-%         spm_write_vol(dataOut,data.newelec);
-
         %save mat file only
         save(outputnaam(1:end-4),'out_els');
         break
