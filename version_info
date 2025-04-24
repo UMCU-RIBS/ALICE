@@ -1,10 +1,18 @@
    
     ALICE 
-  version 8.2
+  version 8.3
 
-Date:   12 December 2023
+Date:   24 April 2024
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+--------- Info log: -----------------------------------------------------------
+[ v8.3 24-04-2024 ]
+
+_____Bug fix/improvements_______________________________________________________
++ Missing anatomy_path when using the option to saved *.nii files.
+
 
 
 

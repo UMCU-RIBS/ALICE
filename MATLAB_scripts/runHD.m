@@ -167,6 +167,7 @@ waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
 % save all projected electrode locaions in a .mat file
 save([mypath subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecmatrix');
 
+anatomy_path = './data/FreeSurfer/t1_class.nii';
 
 % make a NIFTI image with all projected electrodes
 if isfield(obj.settings,'saveNii') && obj.settings.saveNii == 1

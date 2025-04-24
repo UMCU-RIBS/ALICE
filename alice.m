@@ -10,12 +10,12 @@
 close all; clearvars; clc;
 global ALICE
 
-ALICE.version = 8.2;
-ALICE.date    = ' (December 2023)';
+ALICE.version = 8.3;
+ALICE.date    = ' (April 2024)';
 
 disp('                                 ');
 disp('  ****** Welcome to ALICE ****** ');
-disp(['      Version ' num2str(ALICE.version)  ALICE.date]);
+disp(['    Version ' num2str(ALICE.version)  ALICE.date]);
 disp('   A UMCU and NIH collaboration ');
 disp('                                 ');
 
