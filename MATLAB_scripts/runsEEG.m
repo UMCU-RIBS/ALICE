@@ -114,9 +114,12 @@ save([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat'],'elecmatrix');
 
 
 %% 5) extract grid info
-f = waitbar(0.2,'Please wait...','windowstyle', 'modal');
-frames = java.awt.Frame.getFrames();
-frames(end).setAlwaysOnTop(1);
+%start waitbar
+alicefig = gcf;
+alicefig.WindowStyle = "alwaysontop";
+d = uiprogressdlg(alicefig,'Title','Please Wait',...
+        'Message','Extracting channel info');
+d.Value = .2; 
 
 load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
 gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
@@ -125,7 +128,6 @@ elecmatrix = elecmatrix*0;
 %extract electrode numbers
 if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
     errordlg('Please enter *.txt file with electrode labels in Step 2!');
-    close(f);
     return;
 else
     labels = readcell(obj.settings.Labels);
@@ -182,7 +184,7 @@ end
 %and add all nans after last electrode:
 elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:length(gridLabels),:) = nan;
 
-waitbar(0.3,f,'Please wait...','windowstyle', 'modal');
+d.Value = .3; 
 
 
 %% 6) combine electrode files into one
@@ -241,6 +243,9 @@ save([mypath(1:end-21) subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust
 
 %% plot
 
+d.Value = .4; 
+d.Message = 'Plotting view 1';
+
 facealpha = 0.3;
 ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
 currentfig = gcf;
@@ -249,33 +254,47 @@ label_add(elecmatrix);
 display_view = [90 0];
 loc_view(display_view(1), display_view(2));drawnow
 
-waitbar(0.4,f,'Please wait...','windowstyle', 'modal');
+d.Value = .5; 
+d.Message = 'Saving view 1';
 
 pause(5);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_rightview.png']);
 
-waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
+d.Value = .6; 
+d.Message = 'Plotting view 2';
 
-pause(5);
 display_view = [-90 0];
 loc_view(display_view(1), display_view(2));drawnow
-pause(3);
+
+pause(5);
+d.Value = .7; 
+d.Message = 'Saving view 2';
+
+pause(5);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_leftview.png']);
 
-waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
+d.Value = .8; 
+d.Message = 'Plotting view 3';
 
 pause(5);
 display_view = [90 90];
 loc_view(display_view(1), display_view(2)); drawnow
-pause(3);
+
+d.Value = .9; 
+d.Message = 'Saving view 3';
+
+pause(5);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_topview.png']);
 
-waitbar(1,f,'Please wait...','windowstyle', 'modal');
+d.Value = 1; 
+d.Message = 'Almost done...';
 
-pause(35);
+pause(10);
 display_view = [-90 45];
 loc_view(display_view(1), display_view(2)); drawnow
 
 pause(5);
-close(f);
+close(d);
+alicefig.WindowStyle = 'normal';
+
 

@@ -233,17 +233,17 @@ classdef ctmrGUI < handle
                 'FontSize', 10, 'string', {'Implanted hemisphere:'} , 'FontWeight', 'bold','HorizontalAlignment', 'left','enable','inactive');
 
             %radio button 3
-            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [120-2 75-5 230 25], ...
+            obj.controls.radiobtn3 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [120-2 75-20 230 25], ...
                 'FontSize', 10, 'string', 'Left' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
             obj.controls.radiobtn3.Value = 0;
 
             %radio button 4
-            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [175-1 75-5 230 25], ...
+            obj.controls.radiobtn4 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [175-1 75-20 230 25], ...
                 'FontSize', 10, 'string', 'Right' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
             obj.controls.radiobtn4.Value = 0;
 
             %radio button 6
-            obj.controls.radiobtn6 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [238-2 75-5 230 25], ...
+            obj.controls.radiobtn6 = uicontrol( obj.controls.Hemisphere, 'Style', 'radiobutton', 'Position', [238-2 75-20 230 25], ...
                 'FontSize', 10, 'string', 'Both' ,'HandleVisibility','off', 'HorizontalAlignment', 'left','enable','on');
             obj.controls.radiobtn6.Value = 0;
 
@@ -364,6 +364,7 @@ classdef ctmrGUI < handle
         function LocateDirectory( obj )
 
             folderName = uigetdir('.', 'Please locate ALICE folder.');
+            figure(obj.mainFig);
 
             if sum(folderName)~=0 && strcmp(folderName(end-4:end), 'ALICE')
 
@@ -942,6 +943,7 @@ classdef ctmrGUI < handle
             end
 
             [FileName, PathName] = uigetfile('../*.mgz;*.nii');
+            figure(obj.mainFig);
 
             if FileName~=0
 
@@ -995,6 +997,7 @@ classdef ctmrGUI < handle
             cd(obj.settings.currdir);
 
             [FileName, PathName] = uigetfile('../*.mgz;*.nii');
+            figure(obj.mainFig);
 
             if FileName~=0
 
@@ -1043,6 +1046,8 @@ classdef ctmrGUI < handle
             cd(obj.settings.currdir);
 
             [FileName, PathName] = uigetfile('../*.nii');
+            figure(obj.mainFig);
+
             if FileName~=0
 
                 %if the file was already in the folder but was not loaded
@@ -1101,6 +1106,7 @@ classdef ctmrGUI < handle
             cd(obj.settings.currdir);
 
             [FileName, PathName] = uigetfile('../*.txt');
+            figure(obj.mainFig);
 
             if FileName~=0
 

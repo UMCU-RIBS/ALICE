@@ -1,10 +1,23 @@
    
     ALICE 
-  version 8.3
+  version 8.4
 
-Date:   24 April 2024
+Date:   20 November 2025
 Author: Mariana P Branco (m.pedrosobranco@umcutrecht.nl)
 Place:  UMC Utrecht
+
+
+
+
+--------- Info log: -----------------------------------------------------------
+[ v8.4 20-11-2025 ]
+
+_____Bug fix/improvements_______________________________________________________
++ Fix compatability issues with Matlab2025b. 
++ Support for java features was removed, so waitbar was substituted by uiprogressdlg.
++ Fixed same GUI visual items due to Matlab upgrade.
+
+
 
 
 --------- Info log: -----------------------------------------------------------

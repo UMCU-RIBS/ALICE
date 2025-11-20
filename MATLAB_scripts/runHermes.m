@@ -138,9 +138,11 @@ save([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat'],'elecmatrix');
 
 %% 5) project electrodes 2 surface
 %start waitbar
-f = waitbar(0.2,'Please wait...','windowstyle', 'modal');
-frames = java.awt.Frame.getFrames();
-frames(end).setAlwaysOnTop(1);
+alicefig = gcf;
+alicefig.WindowStyle = "alwaysontop";
+d = uiprogressdlg(alicefig,'Title','Please Wait',...
+        'Message','Extracting channel info');
+d.Value = .2; 
 
 system(['rm ./results/' subject '_' hemi '_singleGrid*']);
 
@@ -175,7 +177,6 @@ anatomy_path = './data/FreeSurfer/t1_class.nii';
 %extract electrode numbers
 if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
     errordlg('Please enter *.txt file with electrode labels in Step 2!');
-    close(f);
     return;
 else
     labels = readcell(obj.settings.Labels);
@@ -241,7 +242,7 @@ end
 %and add all nans after last electrode:
 elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:length(gridLabels),:) = nan;
 
-waitbar(0.4,f,'Please wait...','windowstyle', 'modal');
+d.Value = .4; 
 
 
 %% 6) combine electrode files into one
@@ -314,29 +315,40 @@ load([mypath subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.mat']);
 save([mypath(1:end-21) subject '_' hemi '_projectedElectrodes_FreeSurfer_3dclust.mat'],'elecmatrix')
 
 %% plot
+
+d.Value = .6; 
+d.Message = 'Plotting view 1';
+
 facealpha = 1;
 ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
 fg = gcf;
 el_add(elecmatrix,'r',20);
 label_add(elecmatrix);
-
 loc_view(90, 0); drawnow
-waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
+
+d.Value = .7; 
+d.Message = 'Saving view 1';
 
 saveas(fg,['./pictures/' subject '_Hermes_' hemi '_rightview.png']);
 pause(5);
 
-waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
+d.Value = .8; 
+d.Message = 'Plotting view 2';
 
 pause(6);
 loc_view(-90, 0);drawnow
+
+d.Value = .9; 
+d.Message = 'Saving view 2';
 saveas(fg,['./pictures/' subject '_Hermes_' hemi '_leftview.png']);
 
+d.Value = 1; 
+d.Message = 'Almost done...';
 
 pause(5);
 loc_view(display_view(1), display_view(2));drawnow
-waitbar(1,f,'Please wait...','windowstyle', 'modal');
 
 pause(5);
-close(f);
+close(d);
+alicefig.WindowStyle = 'normal';
 

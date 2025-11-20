@@ -121,9 +121,11 @@ save([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat'],'elecmatrix');
 
 %% extract grid info
 %start waitbar
-f = waitbar(0.2,'Please wait...','windowstyle', 'modal');
-frames = java.awt.Frame.getFrames();
-frames(end).setAlwaysOnTop(1);
+alicefig = gcf;
+alicefig.WindowStyle = "alwaysontop";
+d = uiprogressdlg(alicefig,'Title','Please Wait',...
+        'Message','Extracting channel info');
+d.Value = .2; 
 
 load([mypath 'CM_' hemi '_electrodes_sorted_all_aligned.mat']);
 gridLabels = cellstr(num2str(nan(size(elecmatrix(:,1)))));
@@ -132,7 +134,6 @@ elecmatrix = zeros(size(elecmatrix));
 %extract electrode numbers
 if ~isfield(obj.settings, 'Labels') || isempty(obj.settings.Labels)
     errordlg('Please enter *.txt file with electrode labels in Step 2!');
-    close(f);
     return;
 else
     labels = readcell(obj.settings.Labels);
@@ -159,8 +160,7 @@ end
 %and add all nans after last electrode:
 elecmatrix(find(~isnan(elecmatrix(:,1))==1,1, 'last')+1:length(gridLabels),:) = nan;
 
-waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
-
+d.Value = .3; 
 
 %% combine electrode files into one
 
@@ -225,7 +225,8 @@ save([mypath(1:end-21) subject '_' hemi '_electrodes_NOT_PROJECTED.mat'],'elecma
 
 
 %% NeuralAct for HD
-waitbar(0.6,f,'Please wait...','windowstyle', 'modal');
+d.Value = .6; 
+d.Message = 'Projecting electrodes';
 
 %remove nans from elecmatrix when HD is recorded in same file as clinical
 %electrodes
@@ -307,7 +308,8 @@ cmapstruct.cmin             = 0;
 cmapstruct.cmax             = 1;
 viewstruct.what2view        = {'brain'};
 
-waitbar(0.8,f,'Please wait...','windowstyle', 'modal');
+d.Value = .8; 
+d.Message = 'Plotting electrodes';
 
 %% Plot brain
 
@@ -322,8 +324,10 @@ pause(5);
 saveas(fg,['./pictures/' subject '_HD_' hemi '.png']);
 
 pause(5);
-waitbar(1,f,'Please wait...','windowstyle', 'modal');
+d.Value = 1; 
+d.Message = 'Almost done...';
 
 pause(5);
-close(f);
+close(d);
+alicefig.WindowStyle = 'normal';
 
