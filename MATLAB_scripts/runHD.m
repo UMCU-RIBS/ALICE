@@ -261,14 +261,13 @@ save([mypath subject '_' hemi '_neuralAct_data_to_plot'], 'subj', 'cortex', 'cor
 trielectrodes = elecmatrix;
 trielectrodes(~isnan(elecmatrix(:,1)),:) = subj.trielectrodes;
 
-% trielectrodes(3,3) = trielectrodes(3,3)-1; %correct one electrode of
 save([mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface'], 'trielectrodes');
 
 
 %% Save coordinates in txt file
 
 % save projected coordinatinates in a tsv file
-cell_with_coord = [{'name', 'x', 'y', 'z', 'size'}; gridLabels num2cell(round(trielectrodes,4)) repmat({'n/a'},size(gridLabels))];
+cell_with_coord = [{'name', 'x', 'y', 'z', 'size'}; gridLabels(1:size(trielectrodes,1),1) num2cell(round(trielectrodes,4)) repmat({'n/a'},size(gridLabels(1:size(trielectrodes,1),1)))];
 
 try
     writecell(cell_with_coord,[mypath(1:end-21) subject '_' hemi '_Electrodes_displayed_on_surface.txt'],'Delimiter','tab');
@@ -281,37 +280,8 @@ end
 %% Plotting
 load([mypath subject '_' hemi '_neuralAct_data_to_plot']);
 
-viewstruct.what2view        = {'brain', 'trielectrodes','electrodes'};
-viewstruct.viewvect         = display_view;
-viewstruct.material         = 'dull';
-viewstruct.enablelight      = 1;
-viewstruct.enableaxis       = 0;
-
-if strcmp(hemisphere, 'Right')
-    viewstruct.lightpos = [200, 0, 200];
-else
-    viewstruct.lightpos = [-200, 0, 200];
-end
-
-viewstruct.lightingtype     = 'gouraud';
-cmapstruct.cmap             = colormap('Jet');
-if ishandle(2)
-    close(gcf); %because colormap creates a figure but not in newer versions of matlab
-end
-cmapstruct.basecol          = [0.7, 0.7, 0.7];
-cmapstruct.fading           = false;
-cmapstruct.ixg2             = floor(length(cmapstruct.cmap) * 0.15);
-cmapstruct.ixg1             = -cmapstruct.ixg2;
-cmapstruct.enablecolormap   = true;
-cmapstruct.enablecolorbar   = false;
-cmapstruct.cmin             = 0;
-cmapstruct.cmax             = 1;
-viewstruct.what2view        = {'brain'};
-
 d.Value = .8; 
 d.Message = 'Plotting electrodes';
-
-%% Plot brain
 
 facealpha = 1;
 ctmr_gauss_plot(cortex,[0 0 0],0,facealpha);
@@ -319,15 +289,15 @@ fg = gcf;
 %Add spheres electr        odes
 plotSpheres(subj.trielectrodes, 'b');
 loc_view(display_view(1), display_view(2)+30); drawnow
-pause(5);
+pause(8);
 
 saveas(fg,['./pictures/' subject '_HD_' hemi '.png']);
 
-pause(5);
+pause(8);
 d.Value = 1; 
 d.Message = 'Almost done...';
 
-pause(5);
+pause(8);
 close(d);
 alicefig.WindowStyle = 'normal';
 

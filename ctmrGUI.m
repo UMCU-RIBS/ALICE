@@ -109,12 +109,16 @@ classdef ctmrGUI < handle
                 'Title', 'Select file with electrode labels', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
 
             % SubFrame 2 inside frame 2
-            obj.controls.subframe5 = uipanel( 'Parent', obj.controls.frame2, 'Units', 'pixels', 'Position', [10 120 293 220], ...
+            obj.controls.subframe5 = uipanel( 'Parent', obj.controls.frame2, 'Units', 'pixels', 'Position', [10 200 293 150], ...
                 'Title', '3D-Clustering settings', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
+
+            % remove rois frame
+            obj.controls.subframe7 = uipanel( 'Parent', obj.controls.frame2, 'Units', 'pixels', 'Position', [10 100 293 90], ...
+                'Title', 'Delete unwanted ROIs', 'FontSize', 10, 'FontWeight', 'bold', 'BorderType', 'line', 'HighlightColor', [0.8 .8 .8] );
 
             % Button 1 inside frame 2
             obj.controls.btnExtractClusters = uicontrol( 'Parent', obj.controls.frame2, 'Style', 'pushbutton', 'Position', [10 35 140 50], ...
-                'String', 'Extract Clusters', 'Callback', @obj.btnExtractClusters, 'FontSize', 9 , 'FontWeight', 'bold');
+                'String', {'Extract or Visualize' 'Clusters'}, 'Callback', @obj.btnExtractClusters, 'FontSize', 9 , 'FontWeight', 'bold');
 
             % Button 2 inside frame 2
             obj.controls.btnSelectElectrodes = uicontrol( 'Parent', obj.controls.frame2, 'Style', 'pushbutton', 'Position', [163 35 140 50], ...
@@ -176,29 +180,42 @@ classdef ctmrGUI < handle
 
             %% Inside subframe 5 - frame 3
             %text box
-            obj.controls.txtCV = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 145 213 25], ...
+            obj.controls.txtCV = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 85 213 25], ...
                 'FontSize', 10, 'string', {'Electrode max. intensity (-5)'} , 'HorizontalAlignment', 'left','enable','inactive');
 
             %edit text box
-            obj.controls.edtCV = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 145 60 36], ...
+            obj.controls.edtCV = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 85 60 30], ...
                 'FontSize', 10, 'string', {'3999'} ,'Callback', @obj.edtCV,  'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
 
             %text box
-            obj.controls.txtR = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 85 213 25], ...
+            obj.controls.txtR = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 47.5 213 25], ...
                 'FontSize', 10, 'string', {'Electrode volume (e.g., 3)'} , 'HorizontalAlignment', 'left','enable','inactive');
 
             %edit text box
-            obj.controls.edtR = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 85 60 36], ...
+            obj.controls.edtR = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 47.5 60 30], ...
                 'FontSize', 10, 'string', {'3'} , 'Callback', @obj.edtR, 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
 
             %text box
-            obj.controls.txtIS = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 25 213 25], ...
+            obj.controls.txtIS = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'text', 'Position', [10 10 213 25], ...
                 'FontSize', 10, 'string', {'Interelectrode space (e.g., 1)'} , 'HorizontalAlignment', 'left','enable','inactive');
 
             %edit text box
-            obj.controls.edtIS = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 25 60 36], ...
+            obj.controls.edtIS = uicontrol( 'Parent', obj.controls.subframe5, 'Style', 'edit', 'Position', [223 10 60 30], ...
                 'FontSize', 10, 'string', {'1'} , 'Callback', @obj.edtIS, 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
 
+            %% Inside subframe 7 - delete rois
+            %enter roi numbers
+            %text box
+            obj.controls.txtROI = uicontrol( 'Parent', obj.controls.subframe7, 'Style', 'text', 'Position', [10 22 213 20], ...
+                'FontSize', 10, 'string', {'ROI numbers:'} , 'HorizontalAlignment', 'left','enable','inactive');
+
+            %edit text box
+            obj.controls.edtROI = uicontrol( 'Parent', obj.controls.subframe7, 'Style', 'edit', 'Position', [105 20 120 30], ...
+                'FontSize', 10, 'string', {'e.g., 1 2 3'} , 'Callback', @obj.edtROI, 'HorizontalAlignment', 'center', 'BackgroundColor', 'w' ,'enable','on');
+
+            %remove rois button
+            obj.controls.btnDeleteROI = uicontrol( 'Parent', obj.controls.subframe7, 'Style', 'pushbutton', 'Position', [235 20 50 30], ...
+                'String', 'Delete!', 'Callback', @obj.btnDeleteROIs, 'FontSize', 9 , 'FontWeight', 'bold');
 
             %% Inside subframe 6 - frame 3
             %select a method
@@ -688,7 +705,7 @@ classdef ctmrGUI < handle
                 f = fopen('./data/coregistration/status.txt');
                 S = fscanf(f,'%s');
 
-                if strcmp(S(end-20:end),'alignmentsuccessfully')
+                if ~isempty(S) && strcmp(S(end-20:end),'alignmentsuccessfully')
 
                     %log after
                     LogInfo(obj, 1);
@@ -739,6 +756,27 @@ classdef ctmrGUI < handle
 
         end
 
+        function DeleteROIs ( obj )
+
+            cd([obj.settings.currdir '/data/3Dclustering/']);
+
+            clust = ['3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.nii'];
+           
+            rois = strtrim(int2str(obj.settings.roi));
+
+            LogInfo(obj, 1);
+            set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Removing ROIs. Please wait till SUMA opens.'});
+            loggingActions(obj.settings.currdir,1,' > Removing ROIs. Please wait till SUMA opens.');
+
+            system(['tcsh delete_rois.csh '...
+                '-nii ' clust ...
+                ' -labels "' rois '"']);
+
+            system(['suma -i 3dclusters_r3_is1_thr1200.gii']);
+
+            cd(obj.settings.currdir);
+        end
+
         function ExtractClusters ( obj )
 
             cd(obj.settings.currdir);
@@ -769,12 +807,17 @@ classdef ctmrGUI < handle
                         ['After revision, close SUMA.'],[' '], ['To extract new clusters, select new settings and click ''Extract clusters''.'], ...
                         ['Otherwise, click ''Select Electrodes'' to continue.']},'Check electrode-clusters', 'help');
 
+                    pause(1);
+
                     system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
 
                 else
+                    
+                    system(['suma -i 3dclusters_r' num2str(obj.settings.R) '_is' num2str(obj.settings.IS) '_thr' num2str(obj.settings.CV) '.gii']);
+
                     LogInfo(obj, 2);
-                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '>! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is ','inside /data/CT folder.'});
-                    loggingActions(obj.settings.currdir,2,' > ! ERROR: delete any 3dclusters_rX_isX_thrX.nii files in the /3Dclustering directory. This function cannot overwrite files. Check if CT_highresRAI.nii is inside /data/CT folder.');
+                    set(obj.controls.txtLog, 'string',{obj.settings.str{:}, '> Visualizing existing 3dclusters_rX_isX_thrX.nii file in the /3Dclustering directory.'});
+                    loggingActions(obj.settings.currdir,2,' > Visualizing existing 3dclusters_rX_isX_thrX.nii file in the /3Dclustering directory.');
                 end
 
                 cd(obj.settings.currdir);
@@ -1252,6 +1295,41 @@ classdef ctmrGUI < handle
 
         end
 
+        function edtROI( obj, hObject, ~ )
+
+            str = get(obj.controls.edtROI, 'string');
+            try
+                obj.settings.roi = str2num(str{1});
+            catch
+                obj.settings.roi = str2num(str);
+            end
+
+            if isempty(obj.settings.CV)
+                disp('! WARNING: Enter a integer larger than 0.');
+                %log
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',[obj.settings.str(:)',{'>! WARNING: Enter a integer larger than 0.'}]);
+                loggingActions(obj.settings.currdir,2,' >! WARNING: Enter a integer larger than 0.');
+            else
+                settings = obj.settings;
+                save([obj.settings.currdir '/log_info/settings'], 'settings');
+
+                %log
+                LogInfo(obj, 1);
+                set(obj.controls.txtLog, 'string',{obj.settings.str{:},['> ROIs selected: ' num2str(obj.settings.roi)]});
+                loggingActions(obj.settings.currdir,2,[' > ROis selected: ' num2str(obj.settings.roi)]);
+            end
+
+        end
+
+        %Extract electrodes
+        function btnDeleteROIs( obj, hObject, ~ )
+
+            obj.DeleteROIs;
+
+        end
+
+        
         %Extract electrodes
         function btnExtractClusters( obj, hObject, ~ )
 

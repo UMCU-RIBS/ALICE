@@ -330,12 +330,12 @@ d.Value = .7;
 d.Message = 'Saving view 1';
 
 saveas(fg,['./pictures/' subject '_Hermes_' hemi '_rightview.png']);
-pause(5);
+pause(8);
 
 d.Value = .8; 
 d.Message = 'Plotting view 2';
 
-pause(6);
+pause(8);
 loc_view(-90, 0);drawnow
 
 d.Value = .9; 
@@ -345,10 +345,10 @@ saveas(fg,['./pictures/' subject '_Hermes_' hemi '_leftview.png']);
 d.Value = 1; 
 d.Message = 'Almost done...';
 
-pause(5);
+pause(8);
 loc_view(display_view(1), display_view(2));drawnow
 
-pause(5);
+pause(8);
 close(d);
 alicefig.WindowStyle = 'normal';
 

@@ -257,7 +257,7 @@ loc_view(display_view(1), display_view(2));drawnow
 d.Value = .5; 
 d.Message = 'Saving view 1';
 
-pause(5);
+pause(8);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_rightview.png']);
 
 d.Value = .6; 
@@ -266,24 +266,24 @@ d.Message = 'Plotting view 2';
 display_view = [-90 0];
 loc_view(display_view(1), display_view(2));drawnow
 
-pause(5);
+pause(8);
 d.Value = .7; 
 d.Message = 'Saving view 2';
 
-pause(5);
+pause(8);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_leftview.png']);
 
 d.Value = .8; 
 d.Message = 'Plotting view 3';
 
-pause(5);
+pause(8);
 display_view = [90 90];
 loc_view(display_view(1), display_view(2)); drawnow
 
 d.Value = .9; 
 d.Message = 'Saving view 3';
 
-pause(5);
+pause(8);
 saveas(currentfig,['./pictures/' subject '_sEEG_' hemi '_topview.png']);
 
 d.Value = 1; 
@@ -293,7 +293,7 @@ pause(10);
 display_view = [-90 45];
 loc_view(display_view(1), display_view(2)); drawnow
 
-pause(5);
+pause(8);
 close(d);
 alicefig.WindowStyle = 'normal';
 
